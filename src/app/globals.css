@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #374151;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-serif: Georgia, 'Times New Roman', serif;
+  --font-sans: Inter, system-ui, sans-serif;
+  
+  /* Custom spacing for Seth Godin aesthetic */
+  --spacing-18: 4.5rem;
+  --spacing-88: 22rem;
+  
+  /* Typography scale */
+  --font-size-prose: 1.125rem;
+  --line-height-prose: 1.75;
+  
+  /* Content width constraint */
+  --max-width-prose: 700px;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-serif);
+  line-height: var(--line-height-prose);
+}
+
+/* Seth Godin inspired prose styles */
+.prose-seth {
+  max-width: var(--max-width-prose);
+  font-size: var(--font-size-prose);
+  line-height: var(--line-height-prose);
+  color: var(--foreground);
+}
+
+.prose-seth p {
+  margin-bottom: 1.75rem;
+}
+
+.prose-seth h1, 
+.prose-seth h2, 
+.prose-seth h3 {
+  color: #111827;
+  margin-top: 2.5rem;
+  margin-bottom: 1.25rem;
+  font-weight: 700;
+}
+
+.prose-seth h1 {
+  font-size: 2rem;
+  line-height: 1.25;
+}
+
+.prose-seth h2 {
+  font-size: 1.5rem;
+  line-height: 1.33;
+}
+
+.prose-seth h1 + p, 
+.prose-seth h2 + p, 
+.prose-seth h3 + p {
+  margin-top: 0;
+}
+
+/* Post divider styling */
+.post-divider {
+  border-top: 1px solid #e5e7eb;
+  margin: 3rem 0;
+  position: relative;
+}
+
+.post-divider::after {
+  content: '***';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -50%);
+  background: var(--background);
+  padding: 0 1rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}

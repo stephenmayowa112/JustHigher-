@@ -1,10 +1,50 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { SidebarProps } from '@/lib/types';
+
+// Lazy load components that aren't immediately visible
+const SearchBox = dynamic(() => import('@/components/ui/SearchBox'), {
+  loading: () => (
+    <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 animate-pulse">
+      <div className="h-4 bg-gray-200 rounded"></div>
+    </div>
+  ),
+});
+
+const NewsletterForm = dynamic(() => import('@/components/layout/NewsletterForm'), {
+  loading: () => (
+    <div className="space-y-2">
+      <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 animate-pulse">
+        <div className="h-4 bg-gray-200 rounded"></div>
+      </div>
+      <div className="w-full px-4 py-2 bg-gray-200 rounded-md animate-pulse">
+        <div className="h-4 bg-gray-300 rounded"></div>
+      </div>
+    </div>
+  ),
+});
 
 export default function Sidebar({ className = '' }: SidebarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleSearch = (query: string) => {
+    // Handle search functionality
+    console.log('Search query:', query);
+  };
+
+  const handleNewsletterSubscribe = async (email: string) => {
+    // Handle newsletter subscription
+    // In production, this would call the subscribeToNewsletter function
+    console.log('Newsletter subscription:', email);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // For demo purposes, just log success
+    console.log('Subscription successful');
+  };
 
   return (
     <>
@@ -64,7 +104,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
                   </svg>
                 </button>
               </div>
-              <SidebarContent />
+              <SidebarContent onSearch={handleSearch} onNewsletterSubscribe={handleNewsletterSubscribe} />
             </div>
           </div>
         </div>
@@ -73,14 +113,20 @@ export default function Sidebar({ className = '' }: SidebarProps) {
       {/* Desktop sidebar */}
       <div className={`hidden lg:flex lg:flex-shrink-0 ${className}`}>
         <div className="flex flex-col w-88">
-          <SidebarContent />
+          <SidebarContent onSearch={handleSearch} onNewsletterSubscribe={handleNewsletterSubscribe} />
         </div>
       </div>
     </>
   );
 }
 
-function SidebarContent() {
+function SidebarContent({ 
+  onSearch, 
+  onNewsletterSubscribe 
+}: { 
+  onSearch: (query: string) => void;
+  onNewsletterSubscribe: (email: string) => Promise<void>;
+}) {
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200">
       <div className="flex-1 flex flex-col pt-8 pb-4 overflow-y-auto">
@@ -110,37 +156,21 @@ function SidebarContent() {
             </div>
           </div>
 
-          {/* Search Section - Placeholder */}
+          {/* Search Section */}
           <div className="space-y-3">
             <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
               Search
             </h2>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search posts..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                <svg
-                  className="h-4 w-4 text-gray-400"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
+            <Suspense fallback={
+              <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 animate-pulse">
+                <div className="h-4 bg-gray-200 rounded"></div>
               </div>
-            </div>
+            }>
+              <SearchBox onSearch={onSearch} />
+            </Suspense>
           </div>
 
-          {/* Newsletter Section - Placeholder */}
+          {/* Newsletter Section */}
           <div className="space-y-3">
             <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
               Newsletter
@@ -149,19 +179,18 @@ function SidebarContent() {
               <p className="text-sm text-gray-600">
                 Get new posts delivered directly to your inbox.
               </p>
-              <div className="space-y-2">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <button
-                  type="button"
-                  className="w-full bg-gray-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
-                >
-                  Subscribe
-                </button>
-              </div>
+              <Suspense fallback={
+                <div className="space-y-2">
+                  <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded"></div>
+                  </div>
+                  <div className="w-full px-4 py-2 bg-gray-200 rounded-md animate-pulse">
+                    <div className="h-4 bg-gray-300 rounded"></div>
+                  </div>
+                </div>
+              }>
+                <NewsletterForm onSubscribe={onNewsletterSubscribe} />
+              </Suspense>
             </div>
           </div>
         </nav>

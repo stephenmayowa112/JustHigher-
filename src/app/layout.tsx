@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Sidebar from "@/components/layout/Sidebar";
 import MainContent from "@/components/layout/MainContent";
+import Analytics from "@/components/Analytics";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -32,6 +33,9 @@ export default function RootLayout({
             {children}
           </MainContent>
         </div>
+        
+        {/* Analytics Component */}
+        <Analytics />
       </body>
     </html>
   );

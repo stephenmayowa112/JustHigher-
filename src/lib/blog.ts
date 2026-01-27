@@ -102,6 +102,30 @@ export async function searchPosts(query: string, limit?: number): Promise<Post[]
 }
 
 /**
+ * Get a single post by its ID - Admin only
+ */
+export async function getPostById(id: string): Promise<Post | null> {
+  return withRetry(async () => {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned
+        return null;
+      }
+      console.error('Error fetching post by ID:', error);
+      throw new Error(`Failed to fetch post: ${error.message}`);
+    }
+
+    return data;
+  });
+}
+
+/**
  * Get all posts (including unpublished) - Admin only
  */
 export async function getAllPosts(limit?: number): Promise<Post[]> {

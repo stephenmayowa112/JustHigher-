@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { SidebarProps } from '@/lib/types';
+import { SidebarErrorBoundary, SearchErrorBoundary, NewsletterErrorBoundary } from '@/components/ErrorBoundary';
 
 // Lazy load components that aren't immediately visible
 const SearchBox = dynamic(() => import('@/components/ui/SearchBox'), {
@@ -35,19 +36,13 @@ export default function Sidebar({ className = '' }: SidebarProps) {
   };
 
   const handleNewsletterSubscribe = async (email: string) => {
-    // Handle newsletter subscription
-    // In production, this would call the subscribeToNewsletter function
-    console.log('Newsletter subscription:', email);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // For demo purposes, just log success
-    console.log('Subscription successful');
+    // This is now handled by the NewsletterForm component
+    // Just for analytics tracking if needed
+    console.log('Newsletter subscription analytics:', email);
   };
 
   return (
-    <>
+    <SidebarErrorBoundary>
       {/* Mobile menu button */}
       <div className="lg:hidden">
         <div className="flex items-center justify-between bg-white border-b border-gray-200 px-4 py-3">
@@ -56,7 +51,8 @@ export default function Sidebar({ className = '' }: SidebarProps) {
             type="button"
             className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-expanded="false"
+            aria-expanded={isMobileMenuOpen}
+            aria-label="Toggle mobile menu"
           >
             <span className="sr-only">Open main menu</span>
             {/* Hamburger icon */}
@@ -83,13 +79,18 @@ export default function Sidebar({ className = '' }: SidebarProps) {
       {isMobileMenuOpen && (
         <div className="lg:hidden">
           <div className="fixed inset-0 flex z-40">
-            <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setIsMobileMenuOpen(false)} />
+            <div 
+              className="fixed inset-0 bg-gray-600 bg-opacity-75" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              aria-hidden="true"
+            />
             <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
               <div className="absolute top-0 right-0 -mr-12 pt-2">
                 <button
                   type="button"
                   className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
                   onClick={() => setIsMobileMenuOpen(false)}
+                  aria-label="Close mobile menu"
                 >
                   <span className="sr-only">Close sidebar</span>
                   <svg
@@ -116,7 +117,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
           <SidebarContent onSearch={handleSearch} onNewsletterSubscribe={handleNewsletterSubscribe} />
         </div>
       </div>
-    </>
+    </SidebarErrorBoundary>
   );
 }
 
@@ -161,13 +162,15 @@ function SidebarContent({
             <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
               Search
             </h2>
-            <Suspense fallback={
-              <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 animate-pulse">
-                <div className="h-4 bg-gray-200 rounded"></div>
-              </div>
-            }>
-              <SearchBox onSearch={onSearch} />
-            </Suspense>
+            <SearchErrorBoundary>
+              <Suspense fallback={
+                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded"></div>
+                </div>
+              }>
+                <SearchBox onSearch={onSearch} />
+              </Suspense>
+            </SearchErrorBoundary>
           </div>
 
           {/* Newsletter Section */}
@@ -179,18 +182,20 @@ function SidebarContent({
               <p className="text-sm text-gray-600">
                 Get new posts delivered directly to your inbox.
               </p>
-              <Suspense fallback={
-                <div className="space-y-2">
-                  <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded"></div>
+              <NewsletterErrorBoundary>
+                <Suspense fallback={
+                  <div className="space-y-2">
+                    <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded"></div>
+                    </div>
+                    <div className="w-full px-4 py-2 bg-gray-200 rounded-md animate-pulse">
+                      <div className="h-4 bg-gray-300 rounded"></div>
+                    </div>
                   </div>
-                  <div className="w-full px-4 py-2 bg-gray-200 rounded-md animate-pulse">
-                    <div className="h-4 bg-gray-300 rounded"></div>
-                  </div>
-                </div>
-              }>
-                <NewsletterForm onSubscribe={onNewsletterSubscribe} />
-              </Suspense>
+                }>
+                  <NewsletterForm onSubscribe={onNewsletterSubscribe} />
+                </Suspense>
+              </NewsletterErrorBoundary>
             </div>
           </div>
         </nav>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { NewsletterFormProps } from '@/lib/types';
+import { validateEmail } from '@/lib/validation';
 
 export default function NewsletterForm({ onSubscribe }: NewsletterFormProps) {
   const [email, setEmail] = useState('');
@@ -17,11 +18,11 @@ export default function NewsletterForm({ onSubscribe }: NewsletterFormProps) {
       return;
     }
 
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    // Client-side validation
+    const validation = validateEmail(email);
+    if (!validation.isValid) {
       setStatus('error');
-      setMessage('Please enter a valid email address');
+      setMessage(validation.error || 'Please enter a valid email address');
       return;
     }
 
@@ -29,13 +30,54 @@ export default function NewsletterForm({ onSubscribe }: NewsletterFormProps) {
     setMessage('');
 
     try {
-      await onSubscribe(email);
-      setStatus('success');
-      setMessage('Successfully subscribed! Thank you for joining.');
-      setEmail('');
+      // Call the secure API endpoint
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          source: 'website',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setStatus('success');
+        setMessage('Successfully subscribed! Thank you for joining.');
+        setEmail('');
+        
+        // Call the callback if provided (for analytics)
+        if (onSubscribe) {
+          await onSubscribe(email);
+        }
+      } else {
+        setStatus('error');
+        
+        // Handle specific error codes
+        switch (data.code) {
+          case 'ALREADY_SUBSCRIBED':
+            setMessage('This email is already subscribed to our newsletter.');
+            break;
+          case 'RATE_LIMIT_EXCEEDED':
+            setMessage('Too many attempts. Please try again later.');
+            break;
+          case 'VALIDATION_ERROR':
+            setMessage(data.details?.[0]?.message || 'Please enter a valid email address.');
+            break;
+          case 'EMAIL_BLOCKED':
+            setMessage('This email address is not allowed.');
+            break;
+          default:
+            setMessage(data.error || 'Failed to subscribe. Please try again.');
+        }
+      }
     } catch (error) {
       setStatus('error');
-      setMessage(error instanceof Error ? error.message : 'Failed to subscribe. Please try again.');
+      setMessage('Network error. Please check your connection and try again.');
+      console.error('Newsletter subscription error:', error);
     }
   };
 
@@ -62,6 +104,7 @@ export default function NewsletterForm({ onSubscribe }: NewsletterFormProps) {
           }`}
           disabled={status === 'loading' || status === 'success'}
           aria-label="Email address for newsletter"
+          aria-describedby={message ? 'newsletter-message' : undefined}
         />
         
         <button
@@ -98,13 +141,18 @@ export default function NewsletterForm({ onSubscribe }: NewsletterFormProps) {
 
       {/* Status Message */}
       {message && (
-        <div className={`text-sm ${
-          status === 'success' 
-            ? 'text-green-600' 
-            : status === 'error' 
-            ? 'text-red-600' 
-            : 'text-gray-600'
-        }`}>
+        <div 
+          id="newsletter-message"
+          className={`text-sm ${
+            status === 'success' 
+              ? 'text-green-600' 
+              : status === 'error' 
+              ? 'text-red-600' 
+              : 'text-gray-600'
+          }`}
+          role={status === 'error' ? 'alert' : 'status'}
+          aria-live="polite"
+        >
           {message}
         </div>
       )}

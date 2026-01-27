@@ -5,10 +5,10 @@ import Analytics from "@/components/Analytics";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Minimalist Blog",
-  description: "A modern, high-performance blog inspired by Seth Godin's minimalist design",
-  keywords: ["blog", "minimalist", "writing", "thoughts"],
-  authors: [{ name: "Blog Author" }],
+  title: "JustHigher Blog",
+  description: "Ideas that elevate, inspire, and push you toward your potential",
+  keywords: ["motivation", "growth", "inspiration", "personal development", "success"],
+  authors: [{ name: "JustHigher Blog" }],
 };
 
 export const viewport: Viewport = {

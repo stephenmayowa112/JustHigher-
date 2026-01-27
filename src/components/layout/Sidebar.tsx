@@ -46,7 +46,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
       {/* Mobile menu button */}
       <div className="lg:hidden">
         <div className="flex items-center justify-between bg-white border-b border-gray-200 px-4 py-3">
-          <h1 className="text-xl font-bold text-gray-900">Blog</h1>
+          <h1 className="text-xl font-bold text-gray-900">JustHigher Blog</h1>
           <button
             type="button"
             className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
@@ -134,7 +134,7 @@ function SidebarContent({
         {/* Logo/Brand */}
         <div className="flex items-center flex-shrink-0 px-6">
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
-            Minimalist Blog
+            JustHigher Blog
           </h1>
         </div>
 
@@ -147,12 +147,12 @@ function SidebarContent({
             </h2>
             <div className="text-sm text-gray-600 leading-relaxed space-y-3">
               <p>
-                Welcome to this minimalist blog, inspired by the clean and focused design philosophy 
-                of great writers who prioritize content over clutter.
+                Ideas that elevate, inspire, and push you toward your potential. 
+                This is a place for the dreamers who do, the thinkers who act.
               </p>
               <p>
-                Here you'll find thoughtful posts delivered in their entirety, 
-                without the distraction of "read more" buttons or excessive navigation.
+                Every day, you have a choice: stay where you are or climb a little higher. 
+                Welcome to the journey up.
               </p>
             </div>
           </div>
@@ -180,7 +180,7 @@ function SidebarContent({
             </h2>
             <div className="space-y-3">
               <p className="text-sm text-gray-600">
-                Get new posts delivered directly to your inbox.
+                Get inspiring ideas delivered directly to your inbox.
               </p>
               <NewsletterErrorBoundary>
                 <Suspense fallback={
@@ -203,7 +203,7 @@ function SidebarContent({
         {/* Footer */}
         <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200">
           <p className="text-xs text-gray-500">
-            © 2024 Minimalist Blog. Built with Next.js & Supabase.
+            © 2024 JustHigher Blog. All rights reserved.
           </p>
         </div>
       </div>

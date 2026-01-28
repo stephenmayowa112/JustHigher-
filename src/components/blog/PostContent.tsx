@@ -1,6 +1,5 @@
 import { Post } from '@/lib/types';
 import { formatDate, calculateReadingTime } from '@/lib/utils';
-import { Metadata } from 'next';
 
 interface PostContentProps {
   post: Post;
@@ -69,32 +68,6 @@ export default function PostContent({ post }: PostContentProps) {
       </footer>
     </article>
   );
-}
-
-/**
- * Generate metadata for individual post pages
- */
-export function generatePostMetadata(post: Post): Metadata {
-  const publishedDate = post.published_at ? new Date(post.published_at) : new Date(post.created_at);
-  
-  return {
-    title: `${post.title} | Minimalist Blog`,
-    description: post.meta_description || `${post.content.slice(0, 160)}...`,
-    keywords: post.tags,
-    authors: [{ name: "Blog Author" }],
-    openGraph: {
-      title: post.title,
-      description: post.meta_description || `${post.content.slice(0, 160)}...`,
-      type: 'article',
-      publishedTime: publishedDate.toISOString(),
-      tags: post.tags,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: post.title,
-      description: post.meta_description || `${post.content.slice(0, 160)}...`,
-    },
-  };
 }
 
 /**

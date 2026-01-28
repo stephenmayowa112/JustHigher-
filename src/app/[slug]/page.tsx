@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import PostContent, { generatePostMetadata } from '@/components/blog/PostContent';
+import PostContent from '@/components/blog/PostContent';
+import StructuredData from '@/components/StructuredData';
 import { getPostBySlug, getPublishedPosts } from '@/lib/blog';
+import { generatePostMetadata, generatePostJsonLd, generateBreadcrumbJsonLd, siteConfig } from '@/lib/seo';
 
 interface PostPageProps {
   params: {
@@ -38,7 +40,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
     
     if (!post) {
       return {
-        title: 'Post Not Found | Minimalist Blog',
+        title: 'Post Not Found',
         description: 'The requested blog post could not be found.',
       };
     }
@@ -47,7 +49,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   } catch (error) {
     console.error('Error generating metadata:', error);
     return {
-      title: 'Error | Minimalist Blog',
+      title: 'Error',
       description: 'An error occurred while loading this post.',
     };
   }
@@ -62,7 +64,20 @@ export default async function PostPage({ params }: PostPageProps) {
       notFound();
     }
 
-    return <PostContent post={post} />;
+    // Generate structured data
+    const postJsonLd = generatePostJsonLd(post);
+    const breadcrumbJsonLd = generateBreadcrumbJsonLd([
+      { name: 'Home', url: siteConfig.url },
+      { name: post.title, url: `${siteConfig.url}/${post.slug}` },
+    ]);
+
+    return (
+      <>
+        <StructuredData data={postJsonLd} />
+        <StructuredData data={breadcrumbJsonLd} />
+        <PostContent post={post} />
+      </>
+    );
   } catch (error) {
     console.error('Error loading post:', error);
     notFound();

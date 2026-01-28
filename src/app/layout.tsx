@@ -24,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body className="h-full bg-white text-gray-700 font-serif antialiased">
-        <div className="min-h-full flex">
+        <div className="min-h-full flex flex-col lg:flex-row">
           {/* Sidebar Component */}
           <Sidebar />
           

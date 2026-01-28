@@ -33,27 +33,55 @@ body {
 /* Seth Godin inspired prose styles */
 .prose-seth {
   max-width: var(--max-width-prose);
-  font-size: var(--font-size-prose);
-  line-height: var(--line-height-prose);
+  font-size: 1rem;
+  line-height: 1.6;
   color: var(--foreground);
 }
 
+@media (min-width: 640px) {
+  .prose-seth {
+    font-size: var(--font-size-prose);
+    line-height: var(--line-height-prose);
+  }
+}
+
 .prose-seth p {
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .prose-seth p {
+    margin-bottom: 1.75rem;
+  }
 }
 
 .prose-seth h1, 
 .prose-seth h2, 
 .prose-seth h3 {
   color: #111827;
-  margin-top: 2.5rem;
-  margin-bottom: 1.25rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
   font-weight: 700;
 }
 
+@media (min-width: 640px) {
+  .prose-seth h1, 
+  .prose-seth h2, 
+  .prose-seth h3 {
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
+  }
+}
+
 .prose-seth h1 {
-  font-size: 2rem;
+  font-size: 1.75rem;
   line-height: 1.25;
+}
+
+@media (min-width: 640px) {
+  .prose-seth h1 {
+    font-size: 2rem;
+  }
 }
 
 .prose-seth h2 {
@@ -70,8 +98,14 @@ body {
 /* Post divider styling */
 .post-divider {
   border-top: 1px solid #e5e7eb;
-  margin: 3rem 0;
+  margin: 2rem 0;
   position: relative;
+}
+
+@media (min-width: 640px) {
+  .post-divider {
+    margin: 3rem 0;
+  }
 }
 
 .post-divider::after {

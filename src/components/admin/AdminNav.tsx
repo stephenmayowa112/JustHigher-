@@ -6,10 +6,10 @@ import { signOut } from '@/lib/auth';
 import { useAuth } from '@/components/auth/AuthProvider';
 
 const navigation = [
-  { name: 'Dashboard', href: '/admin', icon: '📊' },
-  { name: 'Posts', href: '/admin/posts', icon: '📝' },
-  { name: 'New Post', href: '/admin/posts/new', icon: '➕' },
-  { name: 'Subscribers', href: '/admin/subscribers', icon: '👥' },
+  { name: 'Dashboard', href: '/admin' as const, icon: '📊' },
+  { name: 'Posts', href: '/admin/posts' as const, icon: '📝' },
+  { name: 'New Post', href: '/admin/posts/new' as const, icon: '➕' },
+  { name: 'Subscribers', href: '/admin/subscribers' as const, icon: '👥' },
 ];
 
 export default function AdminNav() {

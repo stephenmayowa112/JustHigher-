@@ -132,14 +132,14 @@ function SidebarContent({
     <div className="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200">
       <div className="flex-1 flex flex-col pt-8 pb-4 overflow-y-auto">
         {/* Logo/Brand */}
-        <div className="flex items-center flex-shrink-0 px-6">
+        <div className="flex items-center flex-shrink-0 px-6 mb-8">
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
             JustHigher Blog
           </h1>
         </div>
 
         {/* Navigation */}
-        <nav className="mt-8 flex-1 px-6 space-y-8">
+        <nav className="flex-1 px-6 space-y-8">
           {/* About Section */}
           <div className="space-y-3">
             <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">

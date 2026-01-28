@@ -51,7 +51,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
             type="button"
             className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-expanded={isMobileMenuOpen}
+            aria-expanded={isMobileMenuOpen ? 'true' : 'false'}
             aria-label="Toggle mobile menu"
           >
             <span className="sr-only">Open main menu</span>
@@ -112,7 +112,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
       )}
 
       {/* Desktop sidebar */}
-      <div className={`hidden lg:flex lg:flex-shrink-0 ${className}`}>
+      <div className={`hidden lg:flex lg:shrink-0 ${className}`}>
         <div className="flex flex-col w-88">
           <SidebarContent onSearch={handleSearch} onNewsletterSubscribe={handleNewsletterSubscribe} />
         </div>
@@ -132,7 +132,7 @@ function SidebarContent({
     <div className="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200">
       <div className="flex-1 flex flex-col pt-8 pb-4 overflow-y-auto">
         {/* Logo/Brand */}
-        <div className="flex items-center flex-shrink-0 px-6 mb-8">
+        <div className="flex items-center shrink-0 px-6 mb-8">
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
             JustHigher Blog
           </h1>
@@ -201,7 +201,7 @@ function SidebarContent({
         </nav>
 
         {/* Footer */}
-        <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200">
+        <div className="shrink-0 px-6 py-4 border-t border-gray-200">
           <p className="text-xs text-gray-500">
             © 2024 JustHigher Blog. All rights reserved.
           </p>

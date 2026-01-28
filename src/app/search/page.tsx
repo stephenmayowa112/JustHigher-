@@ -1,80 +1,65 @@
 'use client';
 
-import { useState, useEffect, useMemo, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Post } from '@/lib/types';
 import { formatDate, calculateReadingTime } from '@/lib/utils';
 
-// Sample posts for search (in production, this would use the searchPosts function)
-const samplePosts: Post[] = [
-  {
-    id: '1',
-    title: 'The Power of Minimalism in Digital Design',
-    content: `In a world cluttered with notifications, pop-ups, and endless distractions, there's something profoundly powerful about embracing minimalism in digital design. This isn't about being sparse for the sake of it. It's about creating space for what matters most: your ideas, your words, your connection with the reader.`,
-    slug: 'power-of-minimalism-digital-design',
-    published_at: '2024-01-26T10:00:00Z',
-    created_at: '2024-01-26T09:00:00Z',
-    updated_at: '2024-01-26T09:00:00Z',
-    tags: ['design', 'minimalism', 'digital'],
-    reading_time: 5,
-  },
-  {
-    id: '2',
-    title: 'Why Full Content Matters',
-    content: `"Read more" buttons are a relic of an era when page views mattered more than reader experience. When you force someone to click to continue reading, you're asking them to make a commitment before they know if your content is worth their time.`,
-    slug: 'why-full-content-matters',
-    published_at: '2024-01-25T14:30:00Z',
-    created_at: '2024-01-25T13:30:00Z',
-    updated_at: '2024-01-25T13:30:00Z',
-    tags: ['content', 'ux', 'writing'],
-    reading_time: 4,
-  },
-  {
-    id: '3',
-    title: 'Building for Speed and Substance',
-    content: `Performance isn't just about technical metrics—it's about respect for your reader's time and attention. When your blog loads instantly, when navigation is intuitive, when the reading experience is seamless, you're sending a message about what you value.`,
-    slug: 'building-for-speed-and-substance',
-    published_at: '2024-01-24T16:15:00Z',
-    created_at: '2024-01-24T15:15:00Z',
-    updated_at: '2024-01-24T15:15:00Z',
-    tags: ['performance', 'web development', 'user experience'],
-    reading_time: 6,
-  },
-];
-
 function SearchContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [query, setQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Get query from URL params
+  // Get query from URL params and perform search
   useEffect(() => {
     const q = searchParams.get('q');
     if (q) {
       setQuery(q);
+      performSearch(q);
     }
   }, [searchParams]);
 
-  // Perform search (client-side for now, would be server-side in production)
-  const searchResults = useMemo(() => {
-    if (!query.trim()) {
-      return [];
+  // Perform search via API
+  const performSearch = async (searchQuery: string) => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
     }
 
-    const lowercaseQuery = query.toLowerCase();
-    return samplePosts.filter(post => 
-      post.title.toLowerCase().includes(lowercaseQuery) ||
-      post.content.toLowerCase().includes(lowercaseQuery) ||
-      post.tags.some(tag => tag.toLowerCase().includes(lowercaseQuery))
-    );
-  }, [query]);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}&limit=20`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Search failed');
+      }
+
+      if (data.success && data.data) {
+        setSearchResults(data.data.results);
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (err) {
+      console.error('Search error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to search posts');
+      setSearchResults([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you might update the URL or trigger a server search
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 300); // Simulate search delay
+    if (query.trim()) {
+      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+    }
   };
 
   return (
@@ -127,27 +112,52 @@ function SearchContent() {
         </div>
       </form>
 
+      {/* Error Message */}
+      {error && (
+        <div className="max-w-md mx-auto bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center space-x-2">
+            <svg className="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-sm text-red-800">{error}</p>
+          </div>
+        </div>
+      )}
+
       {/* Search Results */}
-      {query && (
+      {query && !error && (
         <div className="space-y-6">
           {/* Results Header */}
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
-              {searchResults.length > 0 
-                ? `Found ${searchResults.length} result${searchResults.length === 1 ? '' : 's'} for "${query}"`
-                : `No results found for "${query}"`
-              }
-            </p>
-          </div>
+          {!isLoading && (
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                {searchResults.length > 0 
+                  ? `Found ${searchResults.length} result${searchResults.length === 1 ? '' : 's'} for "${query}"`
+                  : `No results found for "${query}"`
+                }
+              </p>
+            </div>
+          )}
+
+          {/* Loading State */}
+          {isLoading && (
+            <div className="text-center py-12">
+              <div className="animate-spin h-8 w-8 border-2 border-gray-300 border-t-blue-500 rounded-full mx-auto mb-4"></div>
+              <p className="text-gray-600">Searching...</p>
+            </div>
+          )}
 
           {/* Results List */}
-          {searchResults.length > 0 ? (
+          {!isLoading && searchResults.length > 0 && (
             <div className="space-y-8">
               {searchResults.map((post) => (
                 <SearchResultCard key={post.id} post={post} query={query} />
               ))}
             </div>
-          ) : query && (
+          )}
+
+          {/* No Results */}
+          {!isLoading && searchResults.length === 0 && (
             <div className="text-center space-y-4 py-12">
               <div className="text-gray-400">
                 <svg

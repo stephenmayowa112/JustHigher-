@@ -29,7 +29,7 @@ export default function PostContent({ post }: PostContentProps) {
 
         {/* Tags */}
         {post.tags && post.tags.length > 0 && (
-          <div className="flex items-center justify-center space-x-2 pt-2">
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
             {post.tags.map((tag, index) => (
               <span
                 key={index}

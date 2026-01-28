@@ -15,16 +15,16 @@ export default function PostCard({ post, showDivider = true }: PostCardProps) {
           </h1>
           
           {/* Post Metadata */}
-          <div className="flex items-center space-x-4 text-sm text-gray-500">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-gray-500">
             <time dateTime={post.published_at || post.created_at}>
               {formatDate(publishedDate.toISOString())}
             </time>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <span>{readingTime} min read</span>
             {post.tags && post.tags.length > 0 && (
               <>
-                <span>•</span>
-                <div className="flex items-center space-x-2">
+                <span className="hidden sm:inline">•</span>
+                <div className="flex flex-wrap items-center gap-2">
                   {post.tags.slice(0, 3).map((tag, index) => (
                     <span
                       key={index}

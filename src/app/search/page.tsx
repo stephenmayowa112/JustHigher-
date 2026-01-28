@@ -270,16 +270,16 @@ function SearchResultCard({ post, query }: { post: Post; query: string }) {
         </h2>
 
         {/* Post Metadata */}
-        <div className="flex items-center space-x-4 text-sm text-gray-500">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-gray-500">
           <time dateTime={post.published_at || post.created_at}>
             {formatDate(publishedDate.toISOString())}
           </time>
-          <span>•</span>
+          <span className="hidden sm:inline">•</span>
           <span>{readingTime} min read</span>
           {post.tags && post.tags.length > 0 && (
             <>
-              <span>•</span>
-              <div className="flex items-center space-x-1">
+              <span className="hidden sm:inline">•</span>
+              <div className="flex flex-wrap items-center gap-2">
                 {post.tags.slice(0, 2).map((tag, index) => (
                   <span
                     key={index}

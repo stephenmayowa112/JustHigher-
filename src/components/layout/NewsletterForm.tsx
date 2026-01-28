@@ -150,7 +150,7 @@ export default function NewsletterForm({ onSubscribe }: NewsletterFormProps) {
               ? 'text-red-600' 
               : 'text-gray-600'
           }`}
-          role={status === 'error' ? 'alert' : 'status'}
+          role={status === 'error' ? 'alert' : undefined}
           aria-live="polite"
         >
           {message}

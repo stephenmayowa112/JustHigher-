@@ -1,5 +1,7 @@
 import { Post } from '@/lib/types';
 import { formatDate, calculateReadingTime } from '@/lib/utils';
+import ShareButtons from './ShareButtons';
+import { siteConfig } from '@/lib/seo';
 
 interface PostContentProps {
   post: Post;
@@ -45,6 +47,15 @@ export default function PostContent({ post }: PostContentProps) {
       <div className="prose-seth max-w-none">
         <div 
           dangerouslySetInnerHTML={{ __html: formatPostContent(post.content) }}
+        />
+      </div>
+
+      {/* Share Buttons */}
+      <div className="pt-8 border-t border-gray-200">
+        <ShareButtons 
+          title={post.title}
+          url={`${siteConfig.url}/${post.slug}`}
+          description={post.meta_description || post.content.slice(0, 155)}
         />
       </div>
 

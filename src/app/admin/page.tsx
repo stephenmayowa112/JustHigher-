@@ -3,11 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getAllPosts, getSubscriberCount, getRecentSubscribers } from '@/lib/blog';
 import { Post, Subscriber } from '@/lib/types';
-import StatCard from '@/components/admin/StatCard';
-import QuickActions from '@/components/admin/QuickActions';
-import RecentDrafts from '@/components/admin/RecentDrafts';
-import ActivityFeed from '@/components/admin/ActivityFeed';
-import AnalyticsCard from '@/components/admin/AnalyticsCard';
+import StatCard, { Icons } from '@/components/admin/StatCard';
 import Link from 'next/link';
 
 export default function AdminDashboard() {
@@ -27,30 +23,15 @@ export default function AdminDashboard() {
     setError(null);
 
     try {
-      // Fetch all data in parallel
       const [postsResult, subscriberCountResult, subscribersResult] = await Promise.allSettled([
         getAllPosts(50),
         getSubscriberCount(),
         getRecentSubscribers(10),
       ]);
 
-      // Handle posts
       const posts = postsResult.status === 'fulfilled' ? postsResult.value : [];
-      if (postsResult.status === 'rejected') {
-        console.error('Failed to fetch posts:', postsResult.reason);
-      }
-
-      // Handle subscriber count
       const subscriberCount = subscriberCountResult.status === 'fulfilled' ? subscriberCountResult.value : 0;
-      if (subscriberCountResult.status === 'rejected') {
-        console.error('Failed to fetch subscriber count:', subscriberCountResult.reason);
-      }
-
-      // Handle recent subscribers
       const subscribers = subscribersResult.status === 'fulfilled' ? subscribersResult.value : [];
-      if (subscribersResult.status === 'rejected') {
-        console.error('Failed to fetch recent subscribers:', subscribersResult.reason);
-      }
 
       const publishedPosts = posts.filter(post => post.published_at);
       const draftPosts = posts.filter(post => !post.published_at);
@@ -67,7 +48,7 @@ export default function AdminDashboard() {
 
     } catch (err) {
       console.error('Error loading dashboard data:', err);
-      setError('Failed to load dashboard data. Please check your connection and try again.');
+      setError('Failed to load dashboard data.');
     } finally {
       setLoading(false);
     }
@@ -77,32 +58,44 @@ export default function AdminDashboard() {
     loadDashboardData();
   }, [loadDashboardData]);
 
-  const drafts = allPosts.filter(post => !post.published_at);
+  const drafts = allPosts.filter(post => !post.published_at).slice(0, 5);
   const recentPosts = allPosts.filter(post => post.published_at).slice(0, 5);
+
+  // Combined recent activity
+  const recentActivity = [
+    ...recentSubscribers.slice(0, 3).map(s => ({
+      type: 'subscriber' as const,
+      text: `New subscriber: ${s.email}`,
+      time: s.subscribed_at
+    })),
+    ...recentPosts.slice(0, 3).map(p => ({
+      type: 'post' as const,
+      text: `Published: ${p.title}`,
+      time: p.published_at!
+    })),
+  ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
+
+  const formatRelativeTime = (date: string) => {
+    const now = new Date();
+    const d = new Date(date);
+    const diff = Math.floor((now.getTime() - d.getTime()) / 1000);
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  };
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        {/* Loading skeleton */}
-        <div className="h-8 rounded w-48 animate-pulse" style={{ backgroundColor: 'var(--admin-border)' }} />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[...Array(4)].map((_, i) => (
-            <div
-              key={i}
-              className="h-32 rounded-2xl animate-pulse"
-              style={{ backgroundColor: 'var(--admin-border)' }}
-            />
+            <div key={i} className="h-20 rounded-lg animate-pulse" style={{ backgroundColor: 'var(--admin-border)' }} />
           ))}
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {[...Array(2)].map((_, i) => (
-            <div
-              key={i}
-              className="h-64 rounded-xl animate-pulse"
-              style={{ backgroundColor: 'var(--admin-border)' }}
-            />
+            <div key={i} className="h-48 rounded-lg animate-pulse" style={{ backgroundColor: 'var(--admin-border)' }} />
           ))}
         </div>
       </div>
@@ -111,162 +104,130 @@ export default function AdminDashboard() {
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <div className="admin-card p-8 text-center">
-          <span className="text-5xl mb-4 block">⚠️</span>
-          <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--admin-text)' }}>
-            Error Loading Dashboard
-          </h2>
-          <p className="mb-4" style={{ color: 'var(--admin-text-secondary)' }}>
-            {error}
-          </p>
-          <button
-            onClick={loadDashboardData}
-            className="quick-action-btn primary"
-          >
-            <span>🔄</span>
-            <span>Try Again</span>
-          </button>
-        </div>
+      <div className="admin-card p-6 text-center">
+        <p className="text-sm mb-3" style={{ color: 'var(--admin-text-secondary)' }}>{error}</p>
+        <button onClick={loadDashboardData} className="quick-action-btn secondary">
+          Retry
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
+    <div className="space-y-4">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--admin-text)' }}>
-            Dashboard
-          </h1>
-          <p style={{ color: 'var(--admin-text-secondary)' }}>
-            Welcome back! Here's what's happening with your blog.
-          </p>
+          <h1 className="text-lg font-semibold" style={{ color: 'var(--admin-text)' }}>Dashboard</h1>
+          <p className="text-sm" style={{ color: 'var(--admin-text-muted)' }}>Overview of your blog</p>
         </div>
-        <Link
-          href="/admin/posts/new"
-          className="quick-action-btn primary hidden sm:flex"
-        >
-          <span>✏️</span>
-          <span>New Post</span>
+        <Link href="/admin/posts/new" className="quick-action-btn primary">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          New Post
         </Link>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <StatCard
-          icon="📝"
-          label="Total Posts"
-          value={stats.totalPosts}
-          gradient="primary"
-        />
-        <StatCard
-          icon="✅"
-          label="Published"
-          value={stats.publishedPosts}
-          gradient="success"
-        />
-        <StatCard
-          icon="📄"
-          label="Drafts"
-          value={stats.draftPosts}
-          gradient="warning"
-        />
-        <StatCard
-          icon="👥"
-          label="Subscribers"
-          value={stats.totalSubscribers}
-          gradient="info"
-        />
+      {/* Stats - Compact grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard icon={Icons.posts} label="Total Posts" value={stats.totalPosts} variant="primary" />
+        <StatCard icon={Icons.published} label="Published" value={stats.publishedPosts} variant="success" />
+        <StatCard icon={Icons.drafts} label="Drafts" value={stats.draftPosts} variant="warning" />
+        <StatCard icon={Icons.subscribers} label="Subscribers" value={stats.totalSubscribers} variant="info" />
       </div>
 
-      {/* Quick Actions */}
-      <QuickActions />
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Drafts & Recent Posts */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Recent Drafts */}
-          <RecentDrafts drafts={drafts} onPostUpdate={loadDashboardData} />
-
-          {/* Recent Published Posts */}
-          <div className="admin-card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold" style={{ color: 'var(--admin-text)' }}>
-                Recent Posts
-              </h3>
-              <Link
-                href="/admin/posts"
-                className="text-sm hover:underline"
-                style={{ color: 'var(--admin-primary)' }}
-              >
-                View all →
-              </Link>
-            </div>
-
+      {/* Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Recent Posts */}
+        <div className="lg:col-span-2 admin-card">
+          <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--admin-border)' }}>
+            <span className="text-sm font-medium" style={{ color: 'var(--admin-text)' }}>Recent Posts</span>
+            <Link href="/admin/posts" className="text-xs" style={{ color: 'var(--admin-accent)' }}>View all</Link>
+          </div>
+          <div className="divide-y" style={{ borderColor: 'var(--admin-border-light)' }}>
             {recentPosts.length === 0 ? (
-              <div className="text-center py-8" style={{ color: 'var(--admin-text-secondary)' }}>
-                <span className="text-4xl mb-2 block">📢</span>
-                <p>No published posts yet</p>
+              <div className="px-4 py-6 text-center text-sm" style={{ color: 'var(--admin-text-muted)' }}>
+                No posts yet
               </div>
             ) : (
-              <div className="space-y-3">
-                {recentPosts.map((post) => (
-                  <div
-                    key={post.id}
-                    className="flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-opacity-80"
-                    style={{ backgroundColor: 'var(--admin-border-light)' }}
-                  >
-                    <div className="flex-1 min-w-0 mr-4">
-                      <h4
-                        className="font-medium truncate"
-                        style={{ color: 'var(--admin-text)' }}
-                      >
-                        {post.title}
-                      </h4>
-                      <p
-                        className="text-sm"
-                        style={{ color: 'var(--admin-text-secondary)' }}
-                      >
-                        Published {new Date(post.published_at!).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/admin/posts/${post.id}/edit`}
-                        className="px-3 py-1.5 text-sm font-medium rounded-lg"
-                        style={{ color: 'var(--admin-primary)' }}
-                      >
-                        Edit
-                      </Link>
-                      <Link
-                        href={`/${post.slug}`}
-                        target="_blank"
-                        className="px-3 py-1.5 text-sm font-medium rounded-lg"
-                        style={{ color: 'var(--admin-success)' }}
-                      >
-                        View
-                      </Link>
-                    </div>
+              recentPosts.map((post) => (
+                <div key={post.id} className="px-4 py-2.5 flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate" style={{ color: 'var(--admin-text)' }}>{post.title}</p>
+                    <p className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>
+                      {new Date(post.published_at!).toLocaleDateString()}
+                    </p>
                   </div>
-                ))}
-              </div>
+                  <div className="flex items-center gap-2">
+                    <Link href={`/${post.slug}`} target="_blank" className="text-xs px-2 py-1 rounded" style={{ color: 'var(--admin-text-secondary)' }}>
+                      View
+                    </Link>
+                    <Link href={`/admin/posts/${post.id}/edit`} className="text-xs px-2 py-1 rounded" style={{ color: 'var(--admin-accent)' }}>
+                      Edit
+                    </Link>
+                  </div>
+                </div>
+              ))
             )}
           </div>
         </div>
 
-        {/* Right Column - Activity & Analytics */}
-        <div className="space-y-6">
-          <ActivityFeed
-            recentPosts={allPosts}
-            recentSubscribers={recentSubscribers}
-          />
-          <AnalyticsCard
-            posts={allPosts}
-            subscriberCount={stats.totalSubscribers}
-          />
+        {/* Right Column */}
+        <div className="space-y-4">
+          {/* Drafts */}
+          <div className="admin-card">
+            <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--admin-border)' }}>
+              <span className="text-sm font-medium" style={{ color: 'var(--admin-text)' }}>Drafts</span>
+            </div>
+            <div className="divide-y" style={{ borderColor: 'var(--admin-border-light)' }}>
+              {drafts.length === 0 ? (
+                <div className="px-4 py-4 text-center text-xs" style={{ color: 'var(--admin-text-muted)' }}>
+                  No drafts
+                </div>
+              ) : (
+                drafts.map((draft) => (
+                  <div key={draft.id} className="px-4 py-2 flex items-center justify-between">
+                    <span className="text-sm truncate flex-1" style={{ color: 'var(--admin-text)' }}>
+                      {draft.title || 'Untitled'}
+                    </span>
+                    <Link href={`/admin/posts/${draft.id}/edit`} className="text-xs ml-2" style={{ color: 'var(--admin-accent)' }}>
+                      Edit
+                    </Link>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Activity */}
+          <div className="admin-card">
+            <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--admin-border)' }}>
+              <span className="text-sm font-medium" style={{ color: 'var(--admin-text)' }}>Activity</span>
+            </div>
+            <div className="divide-y" style={{ borderColor: 'var(--admin-border-light)' }}>
+              {recentActivity.length === 0 ? (
+                <div className="px-4 py-4 text-center text-xs" style={{ color: 'var(--admin-text-muted)' }}>
+                  No recent activity
+                </div>
+              ) : (
+                recentActivity.map((item, i) => (
+                  <div key={i} className="px-4 py-2 flex items-center gap-2">
+                    <span
+                      className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: item.type === 'subscriber' ? 'var(--admin-success)' : 'var(--admin-accent)' }}
+                    />
+                    <span className="text-xs flex-1 truncate" style={{ color: 'var(--admin-text-secondary)' }}>
+                      {item.text}
+                    </span>
+                    <span className="text-xs flex-shrink-0" style={{ color: 'var(--admin-text-muted)' }}>
+                      {formatRelativeTime(item.time)}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

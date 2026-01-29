@@ -4,27 +4,19 @@ import Link from 'next/link';
 
 export default function QuickActions() {
     return (
-        <div className="admin-card p-6">
-            <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--admin-text)' }}>
-                Quick Actions
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <Link href="/admin/posts/new" className="quick-action-btn primary">
-                    <span>✏️</span>
-                    <span>New Post</span>
-                    <span className="ml-auto text-xs opacity-70 hidden sm:inline">Ctrl+N</span>
-                </Link>
-
-                <Link href="/admin/posts" className="quick-action-btn secondary">
-                    <span>📝</span>
-                    <span>Manage Posts</span>
-                </Link>
-
-                <Link href="/admin/subscribers" className="quick-action-btn secondary">
-                    <span>👥</span>
-                    <span>Subscribers</span>
-                </Link>
-            </div>
+        <div className="flex items-center gap-2">
+            <Link href="/admin/posts/new" className="quick-action-btn primary">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                New Post
+            </Link>
+            <Link href="/admin/posts" className="quick-action-btn secondary">
+                Manage Posts
+            </Link>
+            <Link href="/admin/subscribers" className="quick-action-btn secondary">
+                Subscribers
+            </Link>
         </div>
     );
 }

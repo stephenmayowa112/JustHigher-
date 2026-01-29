@@ -11,11 +11,43 @@ interface AdminSidebarProps {
     onToggle: () => void;
 }
 
-const navigation: { name: string; href: Route; icon: string }[] = [
-    { name: 'Dashboard', href: '/admin' as Route, icon: '📊' },
-    { name: 'Posts', href: '/admin/posts' as Route, icon: '📝' },
-    { name: 'New Post', href: '/admin/posts/new' as Route, icon: '✏️' },
-    { name: 'Subscribers', href: '/admin/subscribers' as Route, icon: '👥' },
+const navigation: { name: string; href: Route; icon: React.ReactNode }[] = [
+    {
+        name: 'Dashboard',
+        href: '/admin' as Route,
+        icon: (
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 13a1 1 0 011-1h4a1 1 0 011 1v6a1 1 0 01-1 1h-4a1 1 0 01-1-1v-6z" />
+            </svg>
+        )
+    },
+    {
+        name: 'Posts',
+        href: '/admin/posts' as Route,
+        icon: (
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+        )
+    },
+    {
+        name: 'New Post',
+        href: '/admin/posts/new' as Route,
+        icon: (
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
+            </svg>
+        )
+    },
+    {
+        name: 'Subscribers',
+        href: '/admin/subscribers' as Route,
+        icon: (
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+        )
+    },
 ];
 
 export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
@@ -35,18 +67,19 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
             {/* Mobile menu button */}
             <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white dark:bg-slate-800 shadow-lg"
+                className="lg:hidden fixed top-3 left-3 z-50 p-2 rounded-md"
+                style={{ backgroundColor: 'var(--admin-bg-secondary)', border: '1px solid var(--admin-border)' }}
                 aria-label="Toggle menu"
             >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--admin-text)' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </button>
 
             {/* Mobile overlay */}
             {mobileOpen && (
                 <div
-                    className="lg:hidden fixed inset-0 bg-black/50 z-40"
+                    className="lg:hidden fixed inset-0 bg-black/30 z-40"
                     onClick={() => setMobileOpen(false)}
                 />
             )}
@@ -56,41 +89,46 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
                 className={`admin-sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}
             >
                 {/* Logo */}
-                <div className="p-6 flex items-center justify-between">
-                    <Link href="/admin" className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
+                <div className="p-4 flex items-center justify-between">
+                    <Link href="/admin" className="flex items-center gap-2">
+                        <div
+                            className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-semibold"
+                            style={{ backgroundColor: 'var(--admin-text)', color: 'var(--admin-bg)' }}
+                        >
                             JH
                         </div>
-                        <span className={`nav-text font-bold text-lg`} style={{ color: 'var(--admin-text)' }}>
-                            JustHigher
+                        <span className={`nav-text font-medium text-sm`} style={{ color: 'var(--admin-text)' }}>
+                            Admin
                         </span>
                     </Link>
 
-                    {/* Collapse toggle (desktop) */}
+                    {/* Collapse toggle */}
                     <button
                         onClick={onToggle}
-                        className="hidden lg:flex p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                        className="hidden lg:flex p-1.5 rounded-md transition-colors"
+                        style={{ color: 'var(--admin-text-muted)' }}
                         aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                     >
                         <svg
-                            className={`w-5 h-5 transition-transform ${collapsed ? 'rotate-180' : ''}`}
+                            width="14" height="14"
+                            className={`transition-transform ${collapsed ? 'rotate-180' : ''}`}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
-                            style={{ color: 'var(--admin-text-secondary)' }}
                         >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                         </svg>
                     </button>
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 px-4 space-y-1">
+                <nav className="flex-1 px-3 space-y-0.5">
+                    <div className="section-header px-2 mb-2">Menu</div>
                     {navigation.map((item) => (
                         <Link
                             key={item.name}
                             href={item.href}
-                            className={`nav-item ${isActive(item.href) ? 'active' : ''}`}
+                            className={`nav-item ${isActive(item.href as string) ? 'active' : ''}`}
                             onClick={() => setMobileOpen(false)}
                         >
                             <span className="nav-item-icon">{item.icon}</span>
@@ -99,30 +137,18 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
                     ))}
                 </nav>
 
-                {/* Quick Action */}
-                <div className="p-4">
-                    <Link
-                        href="/admin/posts/new"
-                        className="quick-action-btn primary w-full"
-                        onClick={() => setMobileOpen(false)}
-                    >
-                        <span>➕</span>
-                        <span className="nav-text">New Post</span>
-                    </Link>
-                </div>
-
                 {/* User section */}
                 <div className="p-4 border-t" style={{ borderColor: 'var(--admin-border)' }}>
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-medium">
+                    <div className="flex items-center gap-2">
+                        <div
+                            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium"
+                            style={{ backgroundColor: 'var(--admin-border)', color: 'var(--admin-text)' }}
+                        >
                             {user?.email?.[0]?.toUpperCase() || 'A'}
                         </div>
                         <div className="nav-text flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate" style={{ color: 'var(--admin-text)' }}>
+                            <p className="text-xs font-medium truncate" style={{ color: 'var(--admin-text)' }}>
                                 {user?.email?.split('@')[0] || 'Admin'}
-                            </p>
-                            <p className="text-xs truncate" style={{ color: 'var(--admin-text-secondary)' }}>
-                                Administrator
                             </p>
                         </div>
                     </div>

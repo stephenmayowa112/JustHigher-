@@ -59,21 +59,7 @@ export default function AdminDashboard() {
   }, [loadDashboardData]);
 
   const drafts = allPosts.filter(post => !post.published_at).slice(0, 5);
-  const recentPosts = allPosts.filter(post => post.published_at).slice(0, 5);
-
-  // Combined recent activity
-  const recentActivity = [
-    ...recentSubscribers.slice(0, 3).map(s => ({
-      type: 'subscriber' as const,
-      text: `New subscriber: ${s.email}`,
-      time: s.subscribed_at
-    })),
-    ...recentPosts.slice(0, 3).map(p => ({
-      type: 'post' as const,
-      text: `Published: ${p.title}`,
-      time: p.published_at!
-    })),
-  ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
+  const recentPosts = allPosts.filter(post => post.published_at).slice(0, 8);
 
   const formatRelativeTime = (date: string) => {
     const now = new Date();
@@ -87,17 +73,13 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-20 rounded-lg animate-pulse" style={{ backgroundColor: 'var(--admin-border)' }} />
+            <div key={i} className="h-20 rounded-lg animate-pulse bg-gray-100" />
           ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {[...Array(2)].map((_, i) => (
-            <div key={i} className="h-48 rounded-lg animate-pulse" style={{ backgroundColor: 'var(--admin-border)' }} />
-          ))}
-        </div>
+        <div className="h-96 rounded-lg animate-pulse bg-gray-100" />
       </div>
     );
   }
@@ -105,8 +87,8 @@ export default function AdminDashboard() {
   if (error) {
     return (
       <div className="admin-card p-6 text-center">
-        <p className="text-sm mb-3" style={{ color: 'var(--admin-text-secondary)' }}>{error}</p>
-        <button onClick={loadDashboardData} className="quick-action-btn secondary">
+        <p className="text-sm mb-3 text-gray-600">{error}</p>
+        <button type="button" onClick={loadDashboardData} className="quick-action-btn secondary">
           Retry
         </button>
       </div>
@@ -114,21 +96,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold" style={{ color: 'var(--admin-text)' }}>Dashboard</h1>
-          <p className="text-sm" style={{ color: 'var(--admin-text-muted)' }}>Overview of your blog</p>
-        </div>
-        <Link href="/admin/posts/new" className="quick-action-btn primary">
-          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          New Post
-        </Link>
-      </div>
-
+    <div className="space-y-3">
       {/* Stats - Compact grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard icon={Icons.posts} label="Total Posts" value={stats.totalPosts} variant="primary" />
@@ -137,95 +105,157 @@ export default function AdminDashboard() {
         <StatCard icon={Icons.subscribers} label="Subscribers" value={stats.totalSubscribers} variant="info" />
       </div>
 
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Recent Posts */}
-        <div className="lg:col-span-2 admin-card">
-          <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--admin-border)' }}>
-            <span className="text-sm font-medium" style={{ color: 'var(--admin-text)' }}>Recent Posts</span>
-            <Link href="/admin/posts" className="text-xs" style={{ color: 'var(--admin-accent)' }}>View all</Link>
+      {/* Main Content - Full Width Table */}
+      <div className="admin-card">
+        <div className="px-4 py-2.5 border-b border-gray-200 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h2 className="text-sm font-semibold text-gray-900">Posts</h2>
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <span>{stats.publishedPosts} published</span>
+              <span>•</span>
+              <span>{stats.draftPosts} drafts</span>
+            </div>
           </div>
-          <div className="divide-y" style={{ borderColor: 'var(--admin-border-light)' }}>
-            {recentPosts.length === 0 ? (
-              <div className="px-4 py-6 text-center text-sm" style={{ color: 'var(--admin-text-muted)' }}>
-                No posts yet
+          <Link href="/admin/posts/new" className="quick-action-btn primary text-xs">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            New Post
+          </Link>
+        </div>
+
+        {/* Posts Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Status</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Date</th>
+                <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {allPosts.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-sm text-gray-500">
+                    No posts yet. Create your first post to get started.
+                  </td>
+                </tr>
+              ) : (
+                allPosts.slice(0, 10).map((post) => (
+                  <tr key={post.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-gray-900 truncate max-w-md">{post.title}</p>
+                        {!post.published_at && (
+                          <span className="status-badge draft text-xs md:hidden">Draft</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2.5 hidden md:table-cell">
+                      {post.published_at ? (
+                        <span className="status-badge published">Published</span>
+                      ) : (
+                        <span className="status-badge draft">Draft</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5 text-sm text-gray-500 hidden lg:table-cell">
+                      {post.published_at 
+                        ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                        : post.created_at 
+                          ? new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                          : '-'
+                      }
+                    </td>
+                    <td className="px-4 py-2.5 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {post.published_at && (
+                          <Link 
+                            href={`/${post.slug}`} 
+                            target="_blank" 
+                            className="text-xs text-gray-600 hover:text-gray-900 transition-colors"
+                          >
+                            View
+                          </Link>
+                        )}
+                        <Link 
+                          href={`/admin/posts/${post.id}/edit`} 
+                          className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                        >
+                          Edit
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {allPosts.length > 10 && (
+          <div className="px-4 py-3 border-t border-gray-200 text-center">
+            <Link href="/admin/posts" className="text-xs text-blue-600 hover:text-blue-700 font-medium">
+              View all {allPosts.length} posts →
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Row - Subscribers & Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        {/* Recent Subscribers */}
+        <div className="admin-card">
+          <div className="px-4 py-2.5 border-b border-gray-200 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-900">Recent Subscribers</h3>
+            <Link href="/admin/subscribers" className="text-xs text-blue-600 hover:text-blue-700">View all</Link>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {recentSubscribers.length === 0 ? (
+              <div className="px-4 py-6 text-center text-sm text-gray-500">
+                No subscribers yet
               </div>
             ) : (
-              recentPosts.map((post) => (
-                <div key={post.id} className="px-4 py-2.5 flex items-center justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: 'var(--admin-text)' }}>{post.title}</p>
-                    <p className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>
-                      {new Date(post.published_at!).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Link href={`/${post.slug}`} target="_blank" className="text-xs px-2 py-1 rounded" style={{ color: 'var(--admin-text-secondary)' }}>
-                      View
-                    </Link>
-                    <Link href={`/admin/posts/${post.id}/edit`} className="text-xs px-2 py-1 rounded" style={{ color: 'var(--admin-accent)' }}>
-                      Edit
-                    </Link>
-                  </div>
+              recentSubscribers.slice(0, 5).map((subscriber) => (
+                <div key={subscriber.id} className="px-4 py-2 flex items-center justify-between">
+                  <span className="text-sm text-gray-700 truncate">{subscriber.email}</span>
+                  <span className="text-xs text-gray-500 shrink-0 ml-2">
+                    {formatRelativeTime(subscriber.subscribed_at)}
+                  </span>
                 </div>
               ))
             )}
           </div>
         </div>
 
-        {/* Right Column */}
-        <div className="space-y-4">
-          {/* Drafts */}
-          <div className="admin-card">
-            <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--admin-border)' }}>
-              <span className="text-sm font-medium" style={{ color: 'var(--admin-text)' }}>Drafts</span>
-            </div>
-            <div className="divide-y" style={{ borderColor: 'var(--admin-border-light)' }}>
-              {drafts.length === 0 ? (
-                <div className="px-4 py-4 text-center text-xs" style={{ color: 'var(--admin-text-muted)' }}>
-                  No drafts
-                </div>
-              ) : (
-                drafts.map((draft) => (
-                  <div key={draft.id} className="px-4 py-2 flex items-center justify-between">
-                    <span className="text-sm truncate flex-1" style={{ color: 'var(--admin-text)' }}>
-                      {draft.title || 'Untitled'}
-                    </span>
-                    <Link href={`/admin/posts/${draft.id}/edit`} className="text-xs ml-2" style={{ color: 'var(--admin-accent)' }}>
-                      Edit
-                    </Link>
-                  </div>
-                ))
-              )}
-            </div>
+        {/* Quick Stats */}
+        <div className="admin-card">
+          <div className="px-4 py-2.5 border-b border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-900">Quick Stats</h3>
           </div>
-
-          {/* Activity */}
-          <div className="admin-card">
-            <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--admin-border)' }}>
-              <span className="text-sm font-medium" style={{ color: 'var(--admin-text)' }}>Activity</span>
+          <div className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Total Views</span>
+              <span className="text-sm font-semibold text-gray-900">-</span>
             </div>
-            <div className="divide-y" style={{ borderColor: 'var(--admin-border-light)' }}>
-              {recentActivity.length === 0 ? (
-                <div className="px-4 py-4 text-center text-xs" style={{ color: 'var(--admin-text-muted)' }}>
-                  No recent activity
-                </div>
-              ) : (
-                recentActivity.map((item, i) => (
-                  <div key={i} className="px-4 py-2 flex items-center gap-2">
-                    <span
-                      className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: item.type === 'subscriber' ? 'var(--admin-success)' : 'var(--admin-accent)' }}
-                    />
-                    <span className="text-xs flex-1 truncate" style={{ color: 'var(--admin-text-secondary)' }}>
-                      {item.text}
-                    </span>
-                    <span className="text-xs flex-shrink-0" style={{ color: 'var(--admin-text-muted)' }}>
-                      {formatRelativeTime(item.time)}
-                    </span>
-                  </div>
-                ))
-              )}
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Avg. Read Time</span>
+              <span className="text-sm font-semibold text-gray-900">
+                {allPosts.length > 0 
+                  ? `${Math.round(allPosts.reduce((acc, p) => acc + (p.reading_time || 0), 0) / allPosts.length)} min`
+                  : '-'
+                }
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Latest Post</span>
+              <span className="text-sm font-semibold text-gray-900">
+                {recentPosts.length > 0 
+                  ? formatRelativeTime(recentPosts[0].published_at!)
+                  : '-'
+                }
+              </span>
             </div>
           </div>
         </div>

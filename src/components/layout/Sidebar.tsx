@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, Suspense } from 'react';
+import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { SidebarProps } from '@/lib/types';
 import { SidebarErrorBoundary, SearchErrorBoundary, NewsletterErrorBoundary } from '@/components/ErrorBoundary';
@@ -31,6 +32,12 @@ const NewsletterForm = dynamic(() => import('@/components/layout/NewsletterForm'
 
 export default function Sidebar({ className = '' }: SidebarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Hide sidebar on admin routes
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
 
   const handleSearch = (query: string) => {
     // Handle search functionality
@@ -79,8 +86,8 @@ export default function Sidebar({ className = '' }: SidebarProps) {
       {/* Mobile menu overlay */}
       {isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-40">
-          <div 
-            className="fixed inset-0 bg-gray-600 bg-opacity-75" 
+          <div
+            className="fixed inset-0 bg-gray-600 bg-opacity-75"
             onClick={() => setIsMobileMenuOpen(false)}
             aria-hidden="true"
           />
@@ -117,10 +124,10 @@ export default function Sidebar({ className = '' }: SidebarProps) {
   );
 }
 
-function SidebarContent({ 
-  onSearch, 
-  onNewsletterSubscribe 
-}: { 
+function SidebarContent({
+  onSearch,
+  onNewsletterSubscribe
+}: {
   onSearch: (query: string) => void;
   onNewsletterSubscribe: (email: string) => Promise<void>;
 }) {
@@ -143,11 +150,11 @@ function SidebarContent({
             </h2>
             <div className="text-sm text-gray-600 leading-relaxed space-y-3">
               <p>
-                Ideas that elevate, inspire, and push you toward your potential. 
+                Ideas that elevate, inspire, and push you toward your potential.
                 This is a place for the dreamers who do, the thinkers who act.
               </p>
               <p>
-                Every day, you have a choice: stay where you are or climb a little higher. 
+                Every day, you have a choice: stay where you are or climb a little higher.
                 Welcome to the journey up.
               </p>
             </div>

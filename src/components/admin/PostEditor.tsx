@@ -1,13 +1,41 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { createPost, updatePost, getPostBySlug } from '@/lib/blog';
-import { Post } from '@/lib/types';
+import { createPost, updatePost } from '@/lib/blog';
 
 interface PostEditorProps {
   postId?: string;
   isEditing?: boolean;
+}
+
+// Simple markdown to HTML converter for preview
+function parseMarkdown(text: string): string {
+  if (!text) return '';
+
+  let html = text
+    // Headers
+    .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold mt-5 mb-2">$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold mt-6 mb-3">$1</h1>')
+    // Bold
+    .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+    // Italic
+    .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+    // Links
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" class="text-blue-600 underline">$1</a>')
+    // Code blocks
+    .replace(/```([\s\S]*?)```/gim, '<pre class="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg overflow-x-auto my-3"><code>$1</code></pre>')
+    // Inline code
+    .replace(/`([^`]+)`/gim, '<code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">$1</code>')
+    // Blockquotes
+    .replace(/^\> (.*$)/gim, '<blockquote class="border-l-4 border-gray-300 pl-4 italic my-3">$1</blockquote>')
+    // Horizontal rule
+    .replace(/^---$/gim, '<hr class="my-6 border-gray-200">')
+    // Line breaks
+    .replace(/\n/gim, '<br/>');
+
+  return html;
 }
 
 export default function PostEditor({ postId, isEditing = false }: PostEditorProps) {
@@ -15,7 +43,12 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  
+  const [showPreview, setShowPreview] = useState(true);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | ''>('');
+  const [isDragging, setIsDragging] = useState(false);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -25,20 +58,84 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
     published_at: '',
   });
 
+  // Auto-save key for localStorage
+  const autoSaveKey = postId ? `post-draft-${postId}` : 'post-draft-new';
+
+  // Load post data or auto-saved draft
   useEffect(() => {
     if (isEditing && postId) {
       loadPost();
+    } else {
+      // Check for auto-saved draft
+      const savedDraft = localStorage.getItem(autoSaveKey);
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft);
+          setFormData(draft);
+          setAutoSaveStatus('saved');
+        } catch (e) {
+          console.error('Failed to parse saved draft:', e);
+        }
+      }
     }
-  }, [isEditing, postId]);
+  }, [isEditing, postId, autoSaveKey]);
+
+  // Auto-save effect
+  useEffect(() => {
+    if (formData.title || formData.content) {
+      setAutoSaveStatus('unsaved');
+
+      // Clear previous timeout
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+
+      // Set new timeout for auto-save
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        localStorage.setItem(autoSaveKey, JSON.stringify(formData));
+        setAutoSaveStatus('saved');
+      }, 2000);
+    }
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [formData, autoSaveKey]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + S = Save draft
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSubmit(new Event('submit') as unknown as React.FormEvent, true);
+      }
+      // Ctrl/Cmd + Enter = Publish
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handleSubmit(new Event('submit') as unknown as React.FormEvent, false);
+      }
+      // Ctrl/Cmd + P = Toggle preview
+      if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+        e.preventDefault();
+        setShowPreview(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [formData]);
 
   const loadPost = async () => {
     if (!postId) return;
-    
+
     setLoading(true);
     try {
       const { getPostById } = await import('@/lib/blog');
       const post = await getPostById(postId);
-      
+
       if (post) {
         setFormData({
           title: post.title,
@@ -76,6 +173,36 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
     }));
   };
 
+  // Drag and drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      const file = files[0];
+      if (file.type.startsWith('image/')) {
+        // In a real implementation, you would upload the image to your storage
+        // For now, we'll insert a placeholder
+        const imagePlaceholder = `\n![${file.name}](image-url-here)\n`;
+        setFormData(prev => ({
+          ...prev,
+          content: prev.content + imagePlaceholder,
+        }));
+      }
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent, isDraft = false) => {
     e.preventDefault();
     setSaving(true);
@@ -97,6 +224,8 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
         await createPost(postData);
       }
 
+      // Clear auto-saved draft on successful save
+      localStorage.removeItem(autoSaveKey);
       router.push('/admin/posts');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save post');
@@ -105,170 +234,282 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
     }
   };
 
+  const clearDraft = () => {
+    localStorage.removeItem(autoSaveKey);
+    setFormData({
+      title: '',
+      content: '',
+      slug: '',
+      meta_description: '',
+      tags: '',
+      published_at: '',
+    });
+    setAutoSaveStatus('');
+  };
+
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-          <div className="space-y-4">
-            <div className="h-10 bg-gray-200 rounded"></div>
-            <div className="h-10 bg-gray-200 rounded"></div>
-            <div className="h-64 bg-gray-200 rounded"></div>
-          </div>
-        </div>
+      <div className="animate-pulse space-y-4">
+        <div className="h-8 rounded w-1/4" style={{ backgroundColor: 'var(--admin-border)' }} />
+        <div className="h-12 rounded" style={{ backgroundColor: 'var(--admin-border)' }} />
+        <div className="h-96 rounded" style={{ backgroundColor: 'var(--admin-border)' }} />
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--admin-text)' }}>
             {isEditing ? 'Edit Post' : 'New Post'}
           </h1>
+          {autoSaveStatus && (
+            <span
+              className="text-xs px-2 py-1 rounded-full"
+              style={{
+                backgroundColor: autoSaveStatus === 'saved' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                color: autoSaveStatus === 'saved' ? 'var(--admin-success)' : 'var(--admin-warning)'
+              }}
+            >
+              {autoSaveStatus === 'saved' ? '✓ Draft saved' : autoSaveStatus === 'saving' ? 'Saving...' : '● Unsaved'}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
           <button
+            type="button"
+            onClick={() => setShowPreview(!showPreview)}
+            className="px-3 py-1.5 text-sm rounded-lg transition-colors"
+            style={{
+              backgroundColor: showPreview ? 'var(--admin-primary)' : 'var(--admin-border-light)',
+              color: showPreview ? 'white' : 'var(--admin-text)'
+            }}
+          >
+            {showPreview ? '👁 Preview On' : '👁 Preview Off'}
+          </button>
+          <button
+            type="button"
             onClick={() => router.back()}
-            className="text-gray-600 hover:text-gray-900 text-sm font-medium"
+            className="px-3 py-1.5 text-sm rounded-lg"
+            style={{ backgroundColor: 'var(--admin-border-light)', color: 'var(--admin-text)' }}
           >
             ← Back
           </button>
         </div>
+      </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-            {error}
-          </div>
-        )}
+      {/* Keyboard shortcuts hint */}
+      <div
+        className="text-xs flex gap-4"
+        style={{ color: 'var(--admin-text-secondary)' }}
+      >
+        <span>⌘S Save Draft</span>
+        <span>⌘Enter Publish</span>
+        <span>⌘P Toggle Preview</span>
+      </div>
 
-        <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-6">
-          {/* Title */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-4">
+        {/* Title & Slug Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--admin-text)' }}>
               Title *
             </label>
             <input
               type="text"
-              id="title"
               required
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              style={{
+                backgroundColor: 'var(--admin-bg-secondary)',
+                borderColor: 'var(--admin-border)',
+                color: 'var(--admin-text)'
+              }}
               value={formData.title}
               onChange={(e) => handleTitleChange(e.target.value)}
               placeholder="Enter post title"
             />
           </div>
-
-          {/* Slug */}
           <div>
-            <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--admin-text)' }}>
               Slug *
             </label>
             <input
               type="text"
-              id="slug"
               required
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              style={{
+                backgroundColor: 'var(--admin-bg-secondary)',
+                borderColor: 'var(--admin-border)',
+                color: 'var(--admin-text)'
+              }}
               value={formData.slug}
               onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
               placeholder="post-url-slug"
             />
-            <p className="mt-1 text-sm text-gray-500">
-              URL-friendly version of the title. Will be used in the post URL.
-            </p>
           </div>
+        </div>
 
-          {/* Content */}
-          <div>
-            <label htmlFor="content" className="block text-sm font-medium text-gray-700">
-              Content *
+        {/* Content Editor with Preview */}
+        <div className={`grid gap-4 ${showPreview ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
+          {/* Editor */}
+          <div
+            className={`relative ${isDragging ? 'ring-2 ring-blue-500 ring-dashed' : ''}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--admin-text)' }}>
+              Content * <span className="font-normal text-xs">(Markdown supported)</span>
             </label>
             <textarea
-              id="content"
+              ref={contentRef}
               required
               rows={20}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm font-mono"
+              className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm resize-none"
+              style={{
+                backgroundColor: 'var(--admin-bg-secondary)',
+                borderColor: 'var(--admin-border)',
+                color: 'var(--admin-text)'
+              }}
               value={formData.content}
               onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              placeholder="Write your post content here... You can use Markdown formatting."
+              placeholder="Write your post content here...&#10;&#10;# Heading 1&#10;## Heading 2&#10;**bold** *italic*&#10;[link](url)&#10;&#10;Drop images here..."
             />
-            <p className="mt-1 text-sm text-gray-500">
-              Supports Markdown formatting. Line breaks will be preserved.
-            </p>
+            {isDragging && (
+              <div
+                className="absolute inset-0 flex items-center justify-center rounded-lg"
+                style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
+              >
+                <span className="text-lg font-medium" style={{ color: 'var(--admin-primary)' }}>
+                  📷 Drop image here
+                </span>
+              </div>
+            )}
           </div>
 
-          {/* Meta Description */}
+          {/* Preview */}
+          {showPreview && (
+            <div>
+              <label className="block text-sm font-medium mb-1" style={{ color: 'var(--admin-text)' }}>
+                Preview
+              </label>
+              <div
+                className="w-full h-[480px] px-4 py-3 rounded-lg border overflow-y-auto prose prose-sm max-w-none"
+                style={{
+                  backgroundColor: 'var(--admin-bg)',
+                  borderColor: 'var(--admin-border)',
+                  color: 'var(--admin-text)'
+                }}
+                dangerouslySetInnerHTML={{ __html: parseMarkdown(formData.content) || '<span style="color: var(--admin-text-secondary)">Preview will appear here...</span>' }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Meta & Tags Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="meta_description" className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--admin-text)' }}>
               Meta Description
             </label>
             <textarea
-              id="meta_description"
               rows={3}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              style={{
+                backgroundColor: 'var(--admin-bg-secondary)',
+                borderColor: 'var(--admin-border)',
+                color: 'var(--admin-text)'
+              }}
               value={formData.meta_description}
               onChange={(e) => setFormData(prev => ({ ...prev, meta_description: e.target.value }))}
-              placeholder="Brief description for SEO and social sharing"
+              placeholder="Brief description for SEO (150-160 chars)"
             />
-            <p className="mt-1 text-sm text-gray-500">
-              Recommended: 150-160 characters. Used for SEO and social media previews.
+            <p className="text-xs mt-1" style={{ color: 'var(--admin-text-secondary)' }}>
+              {formData.meta_description.length}/160 characters
             </p>
           </div>
-
-          {/* Tags */}
-          <div>
-            <label htmlFor="tags" className="block text-sm font-medium text-gray-700">
-              Tags
-            </label>
-            <input
-              type="text"
-              id="tags"
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              value={formData.tags}
-              onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
-              placeholder="motivation, growth, success"
-            />
-            <p className="mt-1 text-sm text-gray-500">
-              Separate tags with commas. Used for categorization and search.
-            </p>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1" style={{ color: 'var(--admin-text)' }}>
+                Tags
+              </label>
+              <input
+                type="text"
+                className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                style={{
+                  backgroundColor: 'var(--admin-bg-secondary)',
+                  borderColor: 'var(--admin-border)',
+                  color: 'var(--admin-text)'
+                }}
+                value={formData.tags}
+                onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
+                placeholder="motivation, growth, success"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1" style={{ color: 'var(--admin-text)' }}>
+                Publish Date
+              </label>
+              <input
+                type="datetime-local"
+                className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                style={{
+                  backgroundColor: 'var(--admin-bg-secondary)',
+                  borderColor: 'var(--admin-border)',
+                  color: 'var(--admin-text)'
+                }}
+                value={formData.published_at}
+                onChange={(e) => setFormData(prev => ({ ...prev, published_at: e.target.value }))}
+              />
+            </div>
           </div>
+        </div>
 
-          {/* Publish Date */}
-          <div>
-            <label htmlFor="published_at" className="block text-sm font-medium text-gray-700">
-              Publish Date
-            </label>
-            <input
-              type="datetime-local"
-              id="published_at"
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              value={formData.published_at}
-              onChange={(e) => setFormData(prev => ({ ...prev, published_at: e.target.value }))}
-            />
-            <p className="mt-1 text-sm text-gray-500">
-              Leave empty to save as draft. Set a future date to schedule publication.
-            </p>
+        {/* Action Buttons */}
+        <div className="flex items-center justify-between pt-4 border-t" style={{ borderColor: 'var(--admin-border)' }}>
+          <div className="flex gap-2">
+            {autoSaveStatus === 'saved' && (
+              <button
+                type="button"
+                onClick={clearDraft}
+                className="px-4 py-2 text-sm rounded-lg transition-colors"
+                style={{ color: 'var(--admin-danger)' }}
+              >
+                Clear Draft
+              </button>
+            )}
           </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-between">
+          <div className="flex gap-3">
             <button
               type="button"
               onClick={(e) => handleSubmit(e, true)}
               disabled={saving}
-              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
+              className="px-6 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              style={{
+                backgroundColor: 'var(--admin-border-light)',
+                color: 'var(--admin-text)'
+              }}
             >
               {saving ? 'Saving...' : 'Save as Draft'}
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
+              className="quick-action-btn primary px-6 py-2.5 disabled:opacity-50"
             >
               {saving ? 'Publishing...' : 'Publish Post'}
             </button>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   );
 }

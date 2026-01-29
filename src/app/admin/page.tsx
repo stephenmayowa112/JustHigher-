@@ -20,14 +20,37 @@ export default function AdminDashboard() {
   const [allPosts, setAllPosts] = useState<Post[]>([]);
   const [recentSubscribers, setRecentSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const loadDashboardData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
     try {
-      const [posts, subscriberCount, subscribers] = await Promise.all([
-        getAllPosts(20),
+      // Fetch all data in parallel
+      const [postsResult, subscriberCountResult, subscribersResult] = await Promise.allSettled([
+        getAllPosts(50),
         getSubscriberCount(),
         getRecentSubscribers(10),
       ]);
+
+      // Handle posts
+      const posts = postsResult.status === 'fulfilled' ? postsResult.value : [];
+      if (postsResult.status === 'rejected') {
+        console.error('Failed to fetch posts:', postsResult.reason);
+      }
+
+      // Handle subscriber count
+      const subscriberCount = subscriberCountResult.status === 'fulfilled' ? subscriberCountResult.value : 0;
+      if (subscriberCountResult.status === 'rejected') {
+        console.error('Failed to fetch subscriber count:', subscriberCountResult.reason);
+      }
+
+      // Handle recent subscribers
+      const subscribers = subscribersResult.status === 'fulfilled' ? subscribersResult.value : [];
+      if (subscribersResult.status === 'rejected') {
+        console.error('Failed to fetch recent subscribers:', subscribersResult.reason);
+      }
 
       const publishedPosts = posts.filter(post => post.published_at);
       const draftPosts = posts.filter(post => !post.published_at);
@@ -41,8 +64,10 @@ export default function AdminDashboard() {
 
       setAllPosts(posts);
       setRecentSubscribers(subscribers);
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
+
+    } catch (err) {
+      console.error('Error loading dashboard data:', err);
+      setError('Failed to load dashboard data. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -59,7 +84,7 @@ export default function AdminDashboard() {
     return (
       <div className="space-y-6">
         {/* Loading skeleton */}
-        <div className="h-8 bg-gray-200 rounded w-48 animate-pulse" style={{ backgroundColor: 'var(--admin-border)' }} />
+        <div className="h-8 rounded w-48 animate-pulse" style={{ backgroundColor: 'var(--admin-border)' }} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
@@ -79,6 +104,29 @@ export default function AdminDashboard() {
               style={{ backgroundColor: 'var(--admin-border)' }}
             />
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="admin-card p-8 text-center">
+          <span className="text-5xl mb-4 block">⚠️</span>
+          <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--admin-text)' }}>
+            Error Loading Dashboard
+          </h2>
+          <p className="mb-4" style={{ color: 'var(--admin-text-secondary)' }}>
+            {error}
+          </p>
+          <button
+            onClick={loadDashboardData}
+            className="quick-action-btn primary"
+          >
+            <span>🔄</span>
+            <span>Try Again</span>
+          </button>
         </div>
       </div>
     );

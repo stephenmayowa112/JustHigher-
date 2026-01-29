@@ -9,13 +9,18 @@ import PostsList from '@/components/admin/PostsList';
 export default function AdminPosts() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const loadPosts = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
     try {
-      const allPosts = await getAllPosts();
+      const allPosts = await getAllPosts(100);
       setPosts(allPosts);
-    } catch (error) {
-      console.error('Error loading posts:', error);
+    } catch (err) {
+      console.error('Error loading posts:', err);
+      setError('Failed to load posts. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -37,6 +42,29 @@ export default function AdminPosts() {
             style={{ backgroundColor: 'var(--admin-border)' }}
           />
         ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="admin-card p-8 text-center">
+          <span className="text-5xl mb-4 block">⚠️</span>
+          <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--admin-text)' }}>
+            Error Loading Posts
+          </h2>
+          <p className="mb-4" style={{ color: 'var(--admin-text-secondary)' }}>
+            {error}
+          </p>
+          <button
+            onClick={loadPosts}
+            className="quick-action-btn primary"
+          >
+            <span>🔄</span>
+            <span>Try Again</span>
+          </button>
+        </div>
       </div>
     );
   }

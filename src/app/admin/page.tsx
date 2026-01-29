@@ -3,10 +3,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getAllPosts, getSubscriberCount, getRecentSubscribers } from '@/lib/blog';
 import { Post, Subscriber } from '@/lib/types';
-import StatCard, { Icons } from '@/components/admin/StatCard';
 import Link from 'next/link';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 export default function AdminDashboard() {
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     totalPosts: 0,
     publishedPosts: 0,
@@ -58,37 +59,41 @@ export default function AdminDashboard() {
     loadDashboardData();
   }, [loadDashboardData]);
 
-  const drafts = allPosts.filter(post => !post.published_at).slice(0, 5);
-  const recentPosts = allPosts.filter(post => post.published_at).slice(0, 8);
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  };
 
-  const formatRelativeTime = (date: string) => {
-    const now = new Date();
-    const d = new Date(date);
-    const diff = Math.floor((now.getTime() - d.getTime()) / 1000);
-    if (diff < 60) return 'Just now';
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
+  const getUserName = () => {
+    if (!user?.email) return 'Admin';
+    return user.email.split('@')[0].charAt(0).toUpperCase() + user.email.split('@')[0].slice(1);
   };
 
   if (loading) {
     return (
-      <div className="space-y-3">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-20 rounded-lg animate-pulse bg-gray-100" />
+      <div className="space-y-6">
+        <div className="h-8 w-48 bg-gray-200 rounded animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-32 bg-gray-100 rounded-2xl animate-pulse" />
           ))}
         </div>
-        <div className="h-96 rounded-lg animate-pulse bg-gray-100" />
+        <div className="h-96 bg-gray-100 rounded-2xl animate-pulse" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="admin-card p-6 text-center">
-        <p className="text-sm mb-3 text-gray-600">{error}</p>
-        <button type="button" onClick={loadDashboardData} className="quick-action-btn secondary">
+      <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
+        <p className="text-gray-600 mb-4">{error}</p>
+        <button 
+          type="button" 
+          onClick={loadDashboardData} 
+          className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+        >
           Retry
         </button>
       </div>
@@ -96,13 +101,75 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-3">
-      {/* Stats - Compact grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard icon={Icons.posts} label="Total Posts" value={stats.totalPosts} variant="primary" />
-        <StatCard icon={Icons.published} label="Published" value={stats.publishedPosts} variant="success" />
-        <StatCard icon={Icons.drafts} label="Drafts" value={stats.draftPosts} variant="warning" />
-        <StatCard icon={Icons.subscribers} label="Subscribers" value={stats.totalSubscribers} variant="info" />
+    <div className="space-y-6">
+      {/* Greeting Header */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-gray-900">
+          {getGreeting()}, {getUserName()} 👋
+        </h1>
+        <Link 
+          href="/admin/posts/new" 
+          className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+        >
+          + New Post
+        </Link>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Total Posts */}
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm text-blue-700 font-medium mb-1">Total Posts</p>
+              <p className="text-3xl font-bold text-blue-900">{stats.totalPosts}</p>
+              <p className="text-xs text-blue-600 mt-2">
+                ↑ {stats.publishedPosts} published
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-blue-200 rounded-xl flex items-center justify-center">
+              <svg width="24" height="24" fill="none" stroke="currentColor" className="text-blue-700" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Subscribers */}
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 border border-green-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm text-green-700 font-medium mb-1">Subscribers</p>
+              <p className="text-3xl font-bold text-green-900">{stats.totalSubscribers}</p>
+              <p className="text-xs text-green-600 mt-2">
+                ↑ Growing audience
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-green-200 rounded-xl flex items-center justify-center">
+              <svg width="24" height="24" fill="none" stroke="currentColor" className="text-green-700" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Drafts */}
+        <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl p-6 border border-amber-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm text-amber-700 font-medium mb-1">Drafts</p>
+              <p className="text-3xl font-bold text-amber-900">{stats.draftPosts}</p>
+              <p className="text-xs text-amber-600 mt-2">
+                {stats.draftPosts > 0 ? '→ Finish writing' : '✓ All published'}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-amber-200 rounded-xl flex items-center justify-center">
+              <svg width="24" height="24" fill="none" stroke="currentColor" className="text-amber-700" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Main Content - Full Width Table */}

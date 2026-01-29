@@ -7,12 +7,12 @@ import { withCache, withRetry, cacheKeys, cacheTTL, invalidateCache } from './ca
  */
 export async function getPublishedPosts(limit?: number, offset?: number): Promise<Post[]> {
   const cacheKey = cacheKeys.publishedPosts(limit, offset);
-  
+
   return withCache(cacheKey, async () => {
     return withRetry(async () => {
       let query = supabase
         .from('posts')
-        .select('*')
+        .select('id, title, slug, content, published_at, created_at, updated_at, tags, meta_description, reading_time')
         .not('published_at', 'is', null)
         .order('published_at', { ascending: false });
 
@@ -41,7 +41,7 @@ export async function getPublishedPosts(limit?: number, offset?: number): Promis
  */
 export async function getPostBySlug(slug: string): Promise<Post | null> {
   const cacheKey = cacheKeys.postBySlug(slug);
-  
+
   return withCache(cacheKey, async () => {
     return withRetry(async () => {
       const { data, error } = await supabase
@@ -74,7 +74,7 @@ export async function searchPosts(query: string, limit?: number): Promise<Post[]
   }
 
   const cacheKey = cacheKeys.searchPosts(query, limit);
-  
+
   return withCache(cacheKey, async () => {
     return withRetry(async () => {
       // Use PostgreSQL full-text search
@@ -163,10 +163,10 @@ export async function subscribeToNewsletter(email: string, source: string = 'web
 
     const { error } = await supabase
       .from('subscribers')
-      .insert({ 
-        email: email.toLowerCase().trim(), 
+      .insert({
+        email: email.toLowerCase().trim(),
         source,
-        active: true 
+        active: true
       });
 
     if (error) {
@@ -188,7 +188,7 @@ export async function subscribeToNewsletter(email: string, source: string = 'web
  */
 export async function getSubscriberCount(): Promise<number> {
   const cacheKey = cacheKeys.subscriberCount();
-  
+
   return withCache(cacheKey, async () => {
     return withRetry(async () => {
       const { count, error } = await supabase
@@ -211,7 +211,7 @@ export async function getSubscriberCount(): Promise<number> {
  */
 export async function getRecentSubscribers(limit: number = 10): Promise<Subscriber[]> {
   const cacheKey = cacheKeys.recentSubscribers(limit);
-  
+
   return withCache(cacheKey, async () => {
     return withRetry(async () => {
       const { data, error } = await supabase

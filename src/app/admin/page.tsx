@@ -1,9 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import AdminNav from '@/components/admin/AdminNav';
-import { getAllPosts, getSubscriberCount } from '@/lib/blog';
-import { Post } from '@/lib/types';
+import { useState, useEffect, useCallback } from 'react';
+import { getAllPosts, getSubscriberCount, getRecentSubscribers } from '@/lib/blog';
+import { Post, Subscriber } from '@/lib/types';
+import StatCard from '@/components/admin/StatCard';
+import QuickActions from '@/components/admin/QuickActions';
+import RecentDrafts from '@/components/admin/RecentDrafts';
+import ActivityFeed from '@/components/admin/ActivityFeed';
+import AnalyticsCard from '@/components/admin/AnalyticsCard';
+import Link from 'next/link';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -12,196 +17,208 @@ export default function AdminDashboard() {
     draftPosts: 0,
     totalSubscribers: 0,
   });
-  const [recentPosts, setRecentPosts] = useState<Post[]>([]);
+  const [allPosts, setAllPosts] = useState<Post[]>([]);
+  const [recentSubscribers, setRecentSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function loadDashboardData() {
-      try {
-        const [posts, subscriberCount] = await Promise.all([
-          getAllPosts(5), // Get 5 most recent posts
-          getSubscriberCount(),
-        ]);
+  const loadDashboardData = useCallback(async () => {
+    try {
+      const [posts, subscriberCount, subscribers] = await Promise.all([
+        getAllPosts(20),
+        getSubscriberCount(),
+        getRecentSubscribers(10),
+      ]);
 
-        const publishedPosts = posts.filter(post => post.published_at);
-        const draftPosts = posts.filter(post => !post.published_at);
+      const publishedPosts = posts.filter(post => post.published_at);
+      const draftPosts = posts.filter(post => !post.published_at);
 
-        setStats({
-          totalPosts: posts.length,
-          publishedPosts: publishedPosts.length,
-          draftPosts: draftPosts.length,
-          totalSubscribers: subscriberCount,
-        });
+      setStats({
+        totalPosts: posts.length,
+        publishedPosts: publishedPosts.length,
+        draftPosts: draftPosts.length,
+        totalSubscribers: subscriberCount,
+      });
 
-        setRecentPosts(posts);
-      } catch (error) {
-        console.error('Error loading dashboard data:', error);
-      } finally {
-        setLoading(false);
-      }
+      setAllPosts(posts);
+      setRecentSubscribers(subscribers);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setLoading(false);
     }
-
-    loadDashboardData();
   }, []);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
+
+  const drafts = allPosts.filter(post => !post.published_at);
+  const recentPosts = allPosts.filter(post => post.published_at).slice(0, 5);
 
   if (loading) {
     return (
-      <div>
-        <AdminNav />
-        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="bg-white p-6 rounded-lg shadow">
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className="space-y-6">
+        {/* Loading skeleton */}
+        <div className="h-8 bg-gray-200 rounded w-48 animate-pulse" style={{ backgroundColor: 'var(--admin-border)' }} />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="h-32 rounded-2xl animate-pulse"
+              style={{ backgroundColor: 'var(--admin-border)' }}
+            />
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[...Array(2)].map((_, i) => (
+            <div
+              key={i}
+              className="h-64 rounded-xl animate-pulse"
+              style={{ backgroundColor: 'var(--admin-border)' }}
+            />
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <AdminNav />
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">Dashboard</h1>
-          
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="text-2xl">📝</div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Total Posts
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
-                        {stats.totalPosts}
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--admin-text)' }}>
+            Dashboard
+          </h1>
+          <p style={{ color: 'var(--admin-text-secondary)' }}>
+            Welcome back! Here's what's happening with your blog.
+          </p>
+        </div>
+        <Link
+          href="/admin/posts/new"
+          className="quick-action-btn primary hidden sm:flex"
+        >
+          <span>✏️</span>
+          <span>New Post</span>
+        </Link>
+      </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="text-2xl">✅</div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Published
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
-                        {stats.publishedPosts}
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <StatCard
+          icon="📝"
+          label="Total Posts"
+          value={stats.totalPosts}
+          gradient="primary"
+        />
+        <StatCard
+          icon="✅"
+          label="Published"
+          value={stats.publishedPosts}
+          gradient="success"
+        />
+        <StatCard
+          icon="📄"
+          label="Drafts"
+          value={stats.draftPosts}
+          gradient="warning"
+        />
+        <StatCard
+          icon="👥"
+          label="Subscribers"
+          value={stats.totalSubscribers}
+          gradient="info"
+        />
+      </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="text-2xl">📄</div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Drafts
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
-                        {stats.draftPosts}
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
+      {/* Quick Actions */}
+      <QuickActions />
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="text-2xl">👥</div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Subscribers
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
-                        {stats.totalSubscribers}
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Drafts & Recent Posts */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Recent Drafts */}
+          <RecentDrafts drafts={drafts} onPostUpdate={loadDashboardData} />
 
-          {/* Recent Posts */}
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+          {/* Recent Published Posts */}
+          <div className="admin-card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold" style={{ color: 'var(--admin-text)' }}>
                 Recent Posts
               </h3>
-              {recentPosts.length === 0 ? (
-                <p className="text-gray-500">No posts yet. Create your first post!</p>
-              ) : (
-                <div className="space-y-4">
-                  {recentPosts.map((post) => (
-                    <div key={post.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                      <div className="flex-1">
-                        <h4 className="text-sm font-medium text-gray-900">
-                          {post.title}
-                        </h4>
-                        <p className="text-sm text-gray-500">
-                          {post.published_at ? (
-                            <>Published {new Date(post.published_at).toLocaleDateString()}</>
-                          ) : (
-                            <span className="text-yellow-600">Draft</span>
-                          )}
-                        </p>
-                      </div>
-                      <div className="flex space-x-2">
-                        <a
-                          href={`/admin/posts/${post.id}/edit`}
-                          className="text-blue-600 hover:text-blue-900 text-sm font-medium"
-                        >
-                          Edit
-                        </a>
-                        {post.published_at && (
-                          <a
-                            href={`/${post.slug}`}
-                            target="_blank"
-                            className="text-green-600 hover:text-green-900 text-sm font-medium"
-                          >
-                            View
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <Link
+                href="/admin/posts"
+                className="text-sm hover:underline"
+                style={{ color: 'var(--admin-primary)' }}
+              >
+                View all →
+              </Link>
             </div>
+
+            {recentPosts.length === 0 ? (
+              <div className="text-center py-8" style={{ color: 'var(--admin-text-secondary)' }}>
+                <span className="text-4xl mb-2 block">📢</span>
+                <p>No published posts yet</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentPosts.map((post) => (
+                  <div
+                    key={post.id}
+                    className="flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-opacity-80"
+                    style={{ backgroundColor: 'var(--admin-border-light)' }}
+                  >
+                    <div className="flex-1 min-w-0 mr-4">
+                      <h4
+                        className="font-medium truncate"
+                        style={{ color: 'var(--admin-text)' }}
+                      >
+                        {post.title}
+                      </h4>
+                      <p
+                        className="text-sm"
+                        style={{ color: 'var(--admin-text-secondary)' }}
+                      >
+                        Published {new Date(post.published_at!).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/admin/posts/${post.id}/edit`}
+                        className="px-3 py-1.5 text-sm font-medium rounded-lg"
+                        style={{ color: 'var(--admin-primary)' }}
+                      >
+                        Edit
+                      </Link>
+                      <Link
+                        href={`/${post.slug}`}
+                        target="_blank"
+                        className="px-3 py-1.5 text-sm font-medium rounded-lg"
+                        style={{ color: 'var(--admin-success)' }}
+                      >
+                        View
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
+        </div>
+
+        {/* Right Column - Activity & Analytics */}
+        <div className="space-y-6">
+          <ActivityFeed
+            recentPosts={allPosts}
+            recentSubscribers={recentSubscribers}
+          />
+          <AnalyticsCard
+            posts={allPosts}
+            subscriberCount={stats.totalSubscribers}
+          />
         </div>
       </div>
     </div>

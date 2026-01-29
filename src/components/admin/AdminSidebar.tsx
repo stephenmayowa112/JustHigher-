@@ -4,17 +4,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { Route } from 'next';
 
 interface AdminSidebarProps {
     collapsed: boolean;
     onToggle: () => void;
 }
 
-const navigation = [
-    { name: 'Dashboard', href: '/admin', icon: '📊' },
-    { name: 'Posts', href: '/admin/posts', icon: '📝' },
-    { name: 'New Post', href: '/admin/posts/new', icon: '✏️' },
-    { name: 'Subscribers', href: '/admin/subscribers', icon: '👥' },
+const navigation: { name: string; href: Route; icon: string }[] = [
+    { name: 'Dashboard', href: '/admin' as Route, icon: '📊' },
+    { name: 'Posts', href: '/admin/posts' as Route, icon: '📝' },
+    { name: 'New Post', href: '/admin/posts/new' as Route, icon: '✏️' },
+    { name: 'Subscribers', href: '/admin/subscribers' as Route, icon: '👥' },
 ];
 
 export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {

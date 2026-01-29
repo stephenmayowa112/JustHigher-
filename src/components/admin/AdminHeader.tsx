@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from '@/lib/auth';
 import DarkModeToggle from './DarkModeToggle';
+import { Route } from 'next';
 
 interface AdminHeaderProps {
     sidebarCollapsed: boolean;
@@ -74,7 +75,7 @@ export default function AdminHeader({ sidebarCollapsed }: AdminHeaderProps) {
                         {index === breadcrumbs.length - 1 ? (
                             <span className="breadcrumb-current">{crumb.name}</span>
                         ) : (
-                            <Link href={crumb.href} className="breadcrumb-link">
+                            <Link href={crumb.href as Route} className="breadcrumb-link">
                                 {crumb.name}
                             </Link>
                         )}

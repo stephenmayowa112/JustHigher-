@@ -172,83 +172,116 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Main Content - Full Width Table */}
-      <div className="admin-card">
-        <div className="px-4 py-2.5 border-b border-gray-200 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h2 className="text-sm font-semibold text-gray-900">Posts</h2>
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <span>{stats.publishedPosts} published</span>
-              <span>•</span>
-              <span>{stats.draftPosts} drafts</span>
-            </div>
+      {/* All Posts Table */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">All Posts</h2>
+            <p className="text-sm text-gray-500 mt-0.5">Manage your blog content</p>
           </div>
-          <Link href="/admin/posts/new" className="quick-action-btn primary text-xs">
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            New Post
-          </Link>
+          <div className="flex items-center gap-3">
+            <input
+              type="text"
+              placeholder="Search posts..."
+              className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
         </div>
 
-        {/* Posts Table */}
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Status</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Date</th>
-                <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Post Title
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">
+                  Author
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider hidden lg:table-cell">
+                  Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {allPosts.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-4 py-8 text-center text-sm text-gray-500">
-                    No posts yet. Create your first post to get started.
+                  <td colSpan={5} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                        <svg width="32" height="32" fill="none" stroke="currentColor" className="text-gray-400" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                      <p className="text-gray-900 font-medium mb-1">No posts yet</p>
+                      <p className="text-sm text-gray-500 mb-4">Create your first post to get started</p>
+                      <Link 
+                        href="/admin/posts/new"
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                      >
+                        Create Post
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ) : (
                 allPosts.slice(0, 10).map((post) => (
                   <tr key={post.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-gray-900 truncate max-w-md">{post.title}</p>
-                        {!post.published_at && (
-                          <span className="status-badge draft text-xs md:hidden">Draft</span>
-                        )}
-                      </div>
+                    <td className="px-6 py-4">
+                      <p className="text-sm font-medium text-gray-900 line-clamp-1">
+                        {post.title}
+                      </p>
                     </td>
-                    <td className="px-4 py-2.5 hidden md:table-cell">
-                      {post.published_at ? (
-                        <span className="status-badge published">Published</span>
-                      ) : (
-                        <span className="status-badge draft">Draft</span>
-                      )}
+                    <td className="px-6 py-4 hidden md:table-cell">
+                      <p className="text-sm text-gray-600">Admin</p>
                     </td>
-                    <td className="px-4 py-2.5 text-sm text-gray-500 hidden lg:table-cell">
+                    <td className="px-6 py-4 text-sm text-gray-600 hidden lg:table-cell">
                       {post.published_at 
-                        ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                        ? new Date(post.published_at).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                          })
                         : post.created_at 
-                          ? new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                          ? new Date(post.created_at).toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric', 
+                              year: 'numeric' 
+                            })
                           : '-'
                       }
                     </td>
-                    <td className="px-4 py-2.5 text-right">
+                    <td className="px-6 py-4">
+                      {post.published_at ? (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
+                          Active
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 border border-red-200">
+                          Draft
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {post.published_at && (
                           <Link 
                             href={`/${post.slug}`} 
                             target="_blank" 
-                            className="text-xs text-gray-600 hover:text-gray-900 transition-colors"
+                            className="text-sm text-gray-600 hover:text-gray-900 transition-colors font-medium"
                           >
                             View
                           </Link>
                         )}
                         <Link 
                           href={`/admin/posts/${post.id}/edit`} 
-                          className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                          className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
                         >
                           Edit
                         </Link>
@@ -262,70 +295,26 @@ export default function AdminDashboard() {
         </div>
 
         {allPosts.length > 10 && (
-          <div className="px-4 py-3 border-t border-gray-200 text-center">
-            <Link href="/admin/posts" className="text-xs text-blue-600 hover:text-blue-700 font-medium">
-              View all {allPosts.length} posts →
-            </Link>
+          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+            <p className="text-sm text-gray-600">
+              Showing 1 to 10 of {allPosts.length} entries
+            </p>
+            <div className="flex items-center gap-2">
+              <button type="button" className="px-3 py-1 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
+                Previous
+              </button>
+              <button type="button" className="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm">
+                1
+              </button>
+              <button type="button" className="px-3 py-1 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
+                2
+              </button>
+              <button type="button" className="px-3 py-1 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
+                Next
+              </button>
+            </div>
           </div>
         )}
-      </div>
-
-      {/* Bottom Row - Subscribers & Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {/* Recent Subscribers */}
-        <div className="admin-card">
-          <div className="px-4 py-2.5 border-b border-gray-200 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-gray-900">Recent Subscribers</h3>
-            <Link href="/admin/subscribers" className="text-xs text-blue-600 hover:text-blue-700">View all</Link>
-          </div>
-          <div className="divide-y divide-gray-100">
-            {recentSubscribers.length === 0 ? (
-              <div className="px-4 py-6 text-center text-sm text-gray-500">
-                No subscribers yet
-              </div>
-            ) : (
-              recentSubscribers.slice(0, 5).map((subscriber) => (
-                <div key={subscriber.id} className="px-4 py-2 flex items-center justify-between">
-                  <span className="text-sm text-gray-700 truncate">{subscriber.email}</span>
-                  <span className="text-xs text-gray-500 shrink-0 ml-2">
-                    {formatRelativeTime(subscriber.subscribed_at)}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="admin-card">
-          <div className="px-4 py-2.5 border-b border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-900">Quick Stats</h3>
-          </div>
-          <div className="p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Total Views</span>
-              <span className="text-sm font-semibold text-gray-900">-</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Avg. Read Time</span>
-              <span className="text-sm font-semibold text-gray-900">
-                {allPosts.length > 0 
-                  ? `${Math.round(allPosts.reduce((acc, p) => acc + (p.reading_time || 0), 0) / allPosts.length)} min`
-                  : '-'
-                }
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Latest Post</span>
-              <span className="text-sm font-semibold text-gray-900">
-                {recentPosts.length > 0 
-                  ? formatRelativeTime(recentPosts[0].published_at!)
-                  : '-'
-                }
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

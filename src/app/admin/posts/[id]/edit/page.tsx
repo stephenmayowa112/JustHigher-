@@ -1,4 +1,3 @@
-import AdminNav from '@/components/admin/AdminNav';
 import PostEditor from '@/components/admin/PostEditor';
 
 interface EditPostPageProps {
@@ -10,7 +9,6 @@ interface EditPostPageProps {
 export default function EditPost({ params }: EditPostPageProps) {
   return (
     <div>
-      <AdminNav />
       <PostEditor postId={params.id} isEditing={true} />
     </div>
   );

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import AdminNav from '@/components/admin/AdminNav';
 import { getRecentSubscribers } from '@/lib/blog';
 import { Subscriber } from '@/lib/types';
 
@@ -67,7 +66,6 @@ export default function AdminSubscribers() {
   if (loading) {
     return (
       <div>
-        <AdminNav />
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
@@ -87,7 +85,6 @@ export default function AdminSubscribers() {
 
   return (
     <div>
-      <AdminNav />
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="flex justify-between items-center mb-6">

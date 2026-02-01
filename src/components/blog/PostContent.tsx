@@ -19,22 +19,13 @@ export default function PostContent({ post }: PostContentProps) {
           {post.title}
         </h1>
         
-        {/* Post Metadata */}
-        <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
-          <time dateTime={post.published_at || post.created_at}>
-            {formatDate(publishedDate.toISOString())}
-          </time>
-          <span>•</span>
-          <span>{readingTime} min read</span>
-        </div>
-
         {/* Tags */}
         {post.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
             {post.tags.map((tag, index) => (
               <span
                 key={index}
-                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors border border-blue-200"
               >
                 {tag}
               </span>
@@ -50,8 +41,17 @@ export default function PostContent({ post }: PostContentProps) {
         />
       </div>
 
+      {/* Post Metadata - After Content */}
+      <div className="flex items-center justify-center space-x-4 text-sm text-gray-500 pt-4">
+        <time dateTime={post.published_at || post.created_at}>
+          {formatDate(publishedDate.toISOString())}
+        </time>
+        <span>•</span>
+        <span>{readingTime} min read</span>
+      </div>
+
       {/* Share Buttons */}
-      <div className="pt-8 border-t border-gray-200">
+      <div className="pt-6 border-t border-gray-200">
         <ShareButtons 
           title={post.title}
           url={`${siteConfig.url}/${post.slug}`}
@@ -62,15 +62,11 @@ export default function PostContent({ post }: PostContentProps) {
       {/* Post Footer */}
       <footer className="pt-8 border-t border-gray-200">
         <div className="text-center space-y-4">
-          <p className="text-sm text-gray-600">
-            Published on {formatDate(publishedDate.toISOString())}
-          </p>
-          
           {/* Back to home link */}
           <div>
             <a 
               href="/"
-              className="inline-flex items-center text-sm text-gray-900 hover:text-gray-600 font-medium transition-colors"
+              className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
             >
               ← Back to all posts
             </a>

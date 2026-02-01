@@ -7,16 +7,16 @@ export default function PostCard({ post, showDivider = true }: PostCardProps) {
 
   return (
     <>
-      <article className="space-y-6">
+      <article className="space-y-6 hover:bg-blue-50/30 transition-colors duration-200 rounded-lg p-6 -mx-6">
         {/* Post Header */}
         <header className="space-y-3">
-          <h1 className="text-3xl font-bold text-gray-900 leading-tight tracking-tight">
+          <h1 className="text-3xl font-bold text-gray-900 leading-tight tracking-tight hover:text-blue-700 transition-colors">
             {post.title}
           </h1>
           
           {/* Post Metadata */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-gray-500">
-            <time dateTime={post.published_at || post.created_at}>
+            <time dateTime={post.published_at || post.created_at} className="text-blue-600 font-medium">
               {formatDate(publishedDate.toISOString())}
             </time>
             <span className="hidden sm:inline">•</span>
@@ -28,7 +28,7 @@ export default function PostCard({ post, showDivider = true }: PostCardProps) {
                   {post.tags.slice(0, 3).map((tag, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700"
+                      className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200"
                     >
                       {tag}
                     </span>

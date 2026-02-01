@@ -50,13 +50,18 @@ Welcome to the climb.`,
   if (posts.length === 0) {
     return (
       <div className="text-center py-16">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
+        <div className="inline-block p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-full mb-6">
+          <svg className="w-16 h-16 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-gray-900 bg-clip-text text-transparent mb-4">
           Welcome to JustHigher Blog
         </h1>
         <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
           A place for ideas that elevate, inspire, and push you toward your potential.
         </p>
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-2xl mx-auto">
+        <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-blue-200 rounded-xl p-6 max-w-2xl mx-auto shadow-sm">
           <h2 className="text-lg font-semibold text-blue-900 mb-2">
             The Journey Begins:
           </h2>

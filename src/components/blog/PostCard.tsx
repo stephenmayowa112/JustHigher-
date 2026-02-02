@@ -14,29 +14,19 @@ export default function PostCard({ post, showDivider = true }: PostCardProps) {
             {post.title}
           </h1>
           
-          {/* Post Metadata */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-gray-500">
-            <time dateTime={post.published_at || post.created_at} className="text-blue-600 font-medium">
-              {formatDate(publishedDate.toISOString())}
-            </time>
-            <span className="hidden sm:inline">•</span>
-            <span>{readingTime} min read</span>
-            {post.tags && post.tags.length > 0 && (
-              <>
-                <span className="hidden sm:inline">•</span>
-                <div className="flex flex-wrap items-center gap-2">
-                  {post.tags.slice(0, 3).map((tag, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
+          {/* Tags only */}
+          {post.tags && post.tags.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              {post.tags.slice(0, 3).map((tag, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-200"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
         </header>
 
         {/* Post Content */}
@@ -45,6 +35,25 @@ export default function PostCard({ post, showDivider = true }: PostCardProps) {
             dangerouslySetInnerHTML={{ __html: formatPostContent(post.content) }}
           />
         </div>
+
+        {/* Post Metadata - AFTER Content */}
+        <footer className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm pt-4 border-t border-gray-200">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-gray-50 to-blue-50 rounded-full border border-gray-200">
+            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <time dateTime={post.published_at || post.created_at} className="text-gray-700 font-medium">
+              {formatDate(publishedDate.toISOString())}
+            </time>
+          </div>
+          <span className="text-gray-400">•</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-gray-50 to-green-50 rounded-full border border-gray-200">
+            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-gray-700 font-medium">{readingTime} min read</span>
+          </div>
+        </footer>
       </article>
 
       {/* Post Divider */}

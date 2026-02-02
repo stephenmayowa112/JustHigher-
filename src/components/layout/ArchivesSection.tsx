@@ -16,6 +16,7 @@ interface ArchiveMonth {
 export default function ArchivesSection() {
   const [archives, setArchives] = useState<ArchiveMonth[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,8 +59,11 @@ export default function ArchivesSection() {
           });
         
         setArchives(archiveArray);
-      } catch (error) {
-        console.error('Error loading archives:', error);
+        setError(false);
+      } catch (err) {
+        console.error('Error loading archives:', err);
+        setError(true);
+        setArchives([]);
       } finally {
         setLoading(false);
       }
@@ -78,10 +82,10 @@ export default function ArchivesSection() {
     );
   }
 
-  if (archives.length === 0) {
+  if (error || archives.length === 0) {
     return (
-      <div className="text-sm text-gray-500 italic">
-        No archives available yet.
+      <div className="text-sm text-gray-500 italic p-3 bg-gray-50 rounded-lg">
+        {error ? 'Unable to load archives at the moment.' : 'No archives available yet.'}
       </div>
     );
   }

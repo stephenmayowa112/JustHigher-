@@ -8,6 +8,7 @@ import { Post } from '@/lib/types';
 export default function TopPostsSection() {
   const [topPosts, setTopPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     async function loadTopPosts() {
@@ -15,8 +16,12 @@ export default function TopPostsSection() {
         // Get the 20 most recent published posts
         const posts = await getPublishedPosts(20);
         setTopPosts(posts);
-      } catch (error) {
-        console.error('Error loading top posts:', error);
+        setError(false);
+      } catch (err) {
+        console.error('Error loading top posts:', err);
+        setError(true);
+        // Set empty array on error
+        setTopPosts([]);
       } finally {
         setLoading(false);
       }
@@ -35,10 +40,10 @@ export default function TopPostsSection() {
     );
   }
 
-  if (topPosts.length === 0) {
+  if (error || topPosts.length === 0) {
     return (
-      <div className="text-sm text-gray-500 italic">
-        No posts available yet.
+      <div className="text-sm text-gray-500 italic p-3 bg-gray-50 rounded-lg">
+        {error ? 'Unable to load posts at the moment.' : 'No posts available yet.'}
       </div>
     );
   }

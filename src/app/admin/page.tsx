@@ -195,9 +195,6 @@ export default function AdminDashboard() {
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Post Title
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">
-                  Author
-                </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider hidden lg:table-cell">
                   Date
                 </th>
@@ -212,7 +209,7 @@ export default function AdminDashboard() {
             <tbody className="divide-y divide-gray-100">
               {allPosts.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
+                  <td colSpan={4} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                         <svg width="32" height="32" fill="none" stroke="currentColor" className="text-gray-400" viewBox="0 0 24 24">
@@ -231,15 +228,12 @@ export default function AdminDashboard() {
                   </td>
                 </tr>
               ) : (
-                allPosts.slice(0, 10).map((post) => (
+                allPosts.map((post) => (
                   <tr key={post.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <p className="text-sm font-medium text-gray-900 line-clamp-1">
                         {post.title}
                       </p>
-                    </td>
-                    <td className="px-6 py-4 hidden md:table-cell">
-                      <p className="text-sm text-gray-600">Admin</p>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600 hidden lg:table-cell">
                       {post.published_at 
@@ -294,25 +288,11 @@ export default function AdminDashboard() {
           </table>
         </div>
 
-        {allPosts.length > 10 && (
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-            <p className="text-sm text-gray-600">
-              Showing 1 to 10 of {allPosts.length} entries
+        {allPosts.length > 0 && (
+          <div className="px-6 py-4 border-t border-gray-200">
+            <p className="text-sm text-gray-600 text-center">
+              Showing all {allPosts.length} {allPosts.length === 1 ? 'post' : 'posts'}
             </p>
-            <div className="flex items-center gap-2">
-              <button type="button" className="px-3 py-1 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
-                Previous
-              </button>
-              <button type="button" className="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm">
-                1
-              </button>
-              <button type="button" className="px-3 py-1 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
-                2
-              </button>
-              <button type="button" className="px-3 py-1 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
-                Next
-              </button>
-            </div>
           </div>
         )}
       </div>

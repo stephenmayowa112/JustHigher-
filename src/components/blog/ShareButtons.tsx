@@ -142,7 +142,7 @@ JustHigher Blog`;
         </h3>
         
         {/* Native Share Button (Mobile) */}
-        {typeof navigator !== 'undefined' && navigator.share && (
+        {typeof navigator !== 'undefined' && 'share' in navigator && (
           <button
             type="button"
             onClick={handleNativeShare}

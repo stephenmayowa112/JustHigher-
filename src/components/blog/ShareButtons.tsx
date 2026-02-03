@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ShareButtonsProps {
   title: string;
@@ -11,6 +11,8 @@ interface ShareButtonsProps {
 export default function ShareButtons({ title, url, description }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [shareIntro, setShareIntro] = useState('Read this powerful write-up to stay inspired');
+  const [isClient, setIsClient] = useState(false);
 
   // Use the provided URL directly (it should already be the full production URL)
   const shareUrl = url;
@@ -26,8 +28,11 @@ export default function ShareButtons({ title, url, description }: ShareButtonsPr
     'Transform your mindset with this',
   ];
   
-  // Pick a random captivating intro
-  const shareIntro = captivatingIntros[Math.floor(Math.random() * captivatingIntros.length)];
+  // Pick a random captivating intro on client side only (after hydration)
+  useEffect(() => {
+    setIsClient(true);
+    setShareIntro(captivatingIntros[Math.floor(Math.random() * captivatingIntros.length)]);
+  }, []);
   
   // Format: "Captivating intro: Title"
   const twitterText = `${shareIntro}: "${title}"`;
@@ -141,8 +146,8 @@ JustHigher Blog`;
           Share
         </h3>
         
-        {/* Native Share Button (Mobile) */}
-        {typeof navigator !== 'undefined' && 'share' in navigator && (
+        {/* Native Share Button (Mobile) - only render after client hydration */}
+        {isClient && 'share' in navigator && (
           <button
             type="button"
             onClick={handleNativeShare}

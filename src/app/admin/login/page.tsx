@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from '@/lib/auth';
 import { useAuth } from '@/components/auth/AuthProvider';
@@ -14,8 +14,13 @@ export default function AdminLogin() {
   const { user } = useAuth();
 
   // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      router.push('/admin');
+    }
+  }, [user, router]);
+
   if (user) {
-    router.push('/admin');
     return null;
   }
 

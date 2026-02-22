@@ -1,41 +1,17 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createPost, updatePost } from '@/lib/blog';
+import dynamic from 'next/dynamic';
+
+// Dynamically import React Quill to avoid SSR issues
+const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+import 'react-quill-new/dist/quill.snow.css';
 
 interface PostEditorProps {
   postId?: string;
   isEditing?: boolean;
-}
-
-// Simple markdown to HTML converter for preview
-function parseMarkdown(text: string): string {
-  if (!text) return '';
-
-  let html = text
-    // Headers
-    .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>')
-    .replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold mt-5 mb-2">$1</h2>')
-    .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold mt-6 mb-3">$1</h1>')
-    // Bold
-    .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
-    // Italic
-    .replace(/\*(.*?)\*/gim, '<em>$1</em>')
-    // Links
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" class="text-blue-600 underline">$1</a>')
-    // Code blocks
-    .replace(/```([\s\S]*?)```/gim, '<pre class="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg overflow-x-auto my-3"><code>$1</code></pre>')
-    // Inline code
-    .replace(/`([^`]+)`/gim, '<code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">$1</code>')
-    // Blockquotes
-    .replace(/^\> (.*$)/gim, '<blockquote class="border-l-4 border-gray-300 pl-4 italic my-3">$1</blockquote>')
-    // Horizontal rule
-    .replace(/^---$/gim, '<hr class="my-6 border-gray-200">')
-    // Line breaks
-    .replace(/\n/gim, '<br/>');
-
-  return html;
 }
 
 export default function PostEditor({ postId, isEditing = false }: PostEditorProps) {
@@ -43,10 +19,8 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [showPreview, setShowPreview] = useState(true);
+  const [showPreview, setShowPreview] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | ''>('');
-  const [isDragging, setIsDragging] = useState(false);
-  const contentRef = useRef<HTMLTextAreaElement>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [formData, setFormData] = useState({
@@ -58,6 +32,28 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
     published_at: '',
   });
 
+  // Quill toolbar configuration
+  const modules = useMemo(() => ({
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      ['blockquote', 'code-block'],
+      ['link', 'image'],
+      [{ 'align': [] }],
+      ['clean'],
+    ],
+  }), []);
+
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'list',
+    'blockquote', 'code-block',
+    'link', 'image',
+    'align',
+  ];
+
   // Auto-save key for localStorage
   const autoSaveKey = postId ? `post-draft-${postId}` : 'post-draft-new';
 
@@ -66,7 +62,6 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
     if (isEditing && postId) {
       loadPost();
     } else {
-      // Check for auto-saved draft
       const savedDraft = localStorage.getItem(autoSaveKey);
       if (savedDraft) {
         try {
@@ -85,12 +80,10 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
     if (formData.title || formData.content) {
       setAutoSaveStatus('unsaved');
 
-      // Clear previous timeout
       if (autoSaveTimeoutRef.current) {
         clearTimeout(autoSaveTimeoutRef.current);
       }
 
-      // Set new timeout for auto-save
       autoSaveTimeoutRef.current = setTimeout(() => {
         localStorage.setItem(autoSaveKey, JSON.stringify(formData));
         setAutoSaveStatus('saved');
@@ -107,20 +100,13 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl/Cmd + S = Save draft
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
         handleSubmit(new Event('submit') as unknown as React.FormEvent, true);
       }
-      // Ctrl/Cmd + Enter = Publish
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();
         handleSubmit(new Event('submit') as unknown as React.FormEvent, false);
-      }
-      // Ctrl/Cmd + P = Toggle preview
-      if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
-        e.preventDefault();
-        setShowPreview(prev => !prev);
       }
     };
 
@@ -173,34 +159,8 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
     }));
   };
 
-  // Drag and drop handlers
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      const file = files[0];
-      if (file.type.startsWith('image/')) {
-        // In a real implementation, you would upload the image to your storage
-        // For now, we'll insert a placeholder
-        const imagePlaceholder = `\n![${file.name}](image-url-here)\n`;
-        setFormData(prev => ({
-          ...prev,
-          content: prev.content + imagePlaceholder,
-        }));
-      }
-    }
+  const handleContentChange = useCallback((value: string) => {
+    setFormData(prev => ({ ...prev, content: value }));
   }, []);
 
   const handleSubmit = async (e: React.FormEvent, isDraft = false) => {
@@ -224,7 +184,6 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
         await createPost(postData);
       }
 
-      // Clear auto-saved draft on successful save
       localStorage.removeItem(autoSaveKey);
       router.push('/admin/posts');
     } catch (err) {
@@ -267,9 +226,9 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
           </h1>
           {autoSaveStatus && (
             <span
-              className="text-xs px-2 py-1 rounded-full"
+              className="badge"
               style={{
-                backgroundColor: autoSaveStatus === 'saved' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                backgroundColor: autoSaveStatus === 'saved' ? 'var(--admin-success-light)' : 'var(--admin-warning-light)',
                 color: autoSaveStatus === 'saved' ? 'var(--admin-success)' : 'var(--admin-warning)'
               }}
             >
@@ -304,7 +263,6 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
       >
         <span>⌘S Save Draft</span>
         <span>⌘Enter Publish</span>
-        <span>⌘P Toggle Preview</span>
       </div>
 
       {error && (
@@ -354,42 +312,27 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
           </div>
         </div>
 
-        {/* Content Editor with Preview */}
+        {/* Rich Text Editor with Optional Preview */}
         <div className={`grid gap-4 ${showPreview ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
           {/* Editor */}
-          <div
-            className={`relative ${isDragging ? 'ring-2 ring-blue-500 ring-dashed' : ''}`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-          >
+          <div>
             <label className="block text-sm font-medium mb-1" style={{ color: 'var(--admin-text)' }}>
-              Content * <span className="font-normal text-xs">(Markdown supported)</span>
+              Content *
             </label>
-            <textarea
-              ref={contentRef}
-              required
-              rows={20}
-              className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm resize-none"
-              style={{
-                backgroundColor: 'var(--admin-bg-secondary)',
-                borderColor: 'var(--admin-border)',
-                color: 'var(--admin-text)'
-              }}
-              value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              placeholder="Write your post content here...&#10;&#10;# Heading 1&#10;## Heading 2&#10;**bold** *italic*&#10;[link](url)&#10;&#10;Drop images here..."
-            />
-            {isDragging && (
-              <div
-                className="absolute inset-0 flex items-center justify-center rounded-lg"
-                style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
-              >
-                <span className="text-lg font-medium" style={{ color: 'var(--admin-primary)' }}>
-                  📷 Drop image here
-                </span>
-              </div>
-            )}
+            <div
+              className="rounded-lg overflow-hidden border"
+              style={{ borderColor: 'var(--admin-border)' }}
+            >
+              <ReactQuill
+                theme="snow"
+                value={formData.content}
+                onChange={handleContentChange}
+                modules={modules}
+                formats={formats}
+                placeholder="Start writing your post..."
+                style={{ minHeight: '400px' }}
+              />
+            </div>
           </div>
 
           {/* Preview */}
@@ -399,13 +342,13 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
                 Preview
               </label>
               <div
-                className="w-full h-[480px] px-4 py-3 rounded-lg border overflow-y-auto prose prose-sm max-w-none"
+                className="w-full min-h-[400px] px-4 py-3 rounded-lg border overflow-y-auto prose prose-sm max-w-none"
                 style={{
                   backgroundColor: 'var(--admin-bg)',
                   borderColor: 'var(--admin-border)',
                   color: 'var(--admin-text)'
                 }}
-                dangerouslySetInnerHTML={{ __html: parseMarkdown(formData.content) || '<span style="color: var(--admin-text-secondary)">Preview will appear here...</span>' }}
+                dangerouslySetInnerHTML={{ __html: formData.content || '<span style="color: var(--admin-text-secondary)">Preview will appear here...</span>' }}
               />
             </div>
           )}
@@ -503,6 +446,56 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
           </div>
         </div>
       </form>
+
+      {/* Quill Theme Overrides */}
+      <style jsx global>{`
+        .ql-toolbar.ql-snow {
+          background-color: var(--admin-bg);
+          border-color: var(--admin-border) !important;
+          border-radius: 8px 8px 0 0;
+        }
+        .ql-container.ql-snow {
+          border-color: var(--admin-border) !important;
+          border-radius: 0 0 8px 8px;
+          font-size: 0.9375rem;
+          font-family: system-ui, -apple-system, sans-serif;
+          min-height: 400px;
+        }
+        .ql-editor {
+          min-height: 400px;
+          background-color: var(--admin-bg-secondary);
+          color: var(--admin-text);
+        }
+        .ql-editor.ql-blank::before {
+          color: var(--admin-text-muted);
+          font-style: normal;
+        }
+        .ql-snow .ql-stroke {
+          stroke: var(--admin-text-secondary);
+        }
+        .ql-snow .ql-fill,
+        .ql-snow .ql-stroke.ql-fill {
+          fill: var(--admin-text-secondary);
+        }
+        .ql-snow .ql-picker-label {
+          color: var(--admin-text-secondary);
+        }
+        .ql-snow .ql-picker-options {
+          background-color: var(--admin-bg-secondary);
+          border-color: var(--admin-border) !important;
+        }
+        .ql-snow .ql-picker-item {
+          color: var(--admin-text);
+        }
+        .ql-toolbar.ql-snow .ql-formats button:hover .ql-stroke,
+        .ql-toolbar.ql-snow .ql-formats button.ql-active .ql-stroke {
+          stroke: var(--admin-accent);
+        }
+        .ql-toolbar.ql-snow .ql-formats button:hover .ql-fill,
+        .ql-toolbar.ql-snow .ql-formats button.ql-active .ql-fill {
+          fill: var(--admin-accent);
+        }
+      `}</style>
     </div>
   );
 }

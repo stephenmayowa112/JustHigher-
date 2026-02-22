@@ -5,6 +5,7 @@ import { getAllPosts, getSubscriberCount, getRecentSubscribers } from '@/lib/blo
 import { Post, Subscriber } from '@/lib/types';
 import Link from 'next/link';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { Route } from 'next';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -343,7 +344,7 @@ function StatCard({ label, value, icon, iconClass, href }: {
   href: string;
 }) {
   return (
-    <Link href={href} className="stat-card flex items-center justify-between hover:shadow-sm transition-shadow">
+    <Link href={href as Route} className="stat-card flex items-center justify-between hover:shadow-sm transition-shadow">
       <div>
         <p className="stat-card-value">{value}</p>
         <p className="stat-card-label">{label}</p>

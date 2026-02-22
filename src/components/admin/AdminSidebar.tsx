@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { Route } from 'next';
 
@@ -56,9 +56,7 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const isActive = (href: string) => {
-        if (href === '/admin') {
-            return pathname === '/admin';
-        }
+        if (href === '/admin') return pathname === '/admin';
         return pathname?.startsWith(href);
     };
 
@@ -97,12 +95,11 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
                         >
                             JH
                         </div>
-                        <span className={`nav-text font-medium text-sm`} style={{ color: 'var(--admin-text)' }}>
+                        <span className="nav-text font-medium text-sm" style={{ color: 'var(--admin-text)' }}>
                             Admin
                         </span>
                     </Link>
 
-                    {/* Collapse toggle */}
                     <button
                         onClick={onToggle}
                         className="hidden lg:flex p-1.5 rounded-md transition-colors"
@@ -112,9 +109,7 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
                         <svg
                             width="14" height="14"
                             className={`transition-transform ${collapsed ? 'rotate-180' : ''}`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24"
                         >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                         </svg>
@@ -136,6 +131,24 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
                         </Link>
                     ))}
                 </nav>
+
+                {/* Bottom section */}
+                <div className="px-3 pb-2">
+                    {/* View Blog link */}
+                    <Link
+                        href="/"
+                        target="_blank"
+                        className="nav-item mb-1"
+                        style={{ color: 'var(--admin-text-muted)' }}
+                    >
+                        <span className="nav-item-icon">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                        </span>
+                        <span className="nav-text">View Blog</span>
+                    </Link>
+                </div>
 
                 {/* User section */}
                 <div className="p-4 border-t" style={{ borderColor: 'var(--admin-border)' }}>

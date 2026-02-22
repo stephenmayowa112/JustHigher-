@@ -281,21 +281,18 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
           <button
             type="button"
             onClick={() => setShowPreview(!showPreview)}
-            className="px-3 py-1.5 text-sm rounded-lg transition-colors"
-            style={{
-              backgroundColor: showPreview ? 'var(--admin-primary)' : 'var(--admin-border-light)',
-              color: showPreview ? 'white' : 'var(--admin-text)'
-            }}
+            className={`btn btn-sm ${showPreview ? 'btn-primary' : 'btn-secondary'}`}
           >
-            {showPreview ? '👁 Preview On' : '👁 Preview Off'}
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+            {showPreview ? 'Preview On' : 'Preview Off'}
           </button>
           <button
             type="button"
             onClick={() => router.back()}
-            className="px-3 py-1.5 text-sm rounded-lg"
-            style={{ backgroundColor: 'var(--admin-border-light)', color: 'var(--admin-text)' }}
+            className="btn btn-secondary btn-sm"
           >
-            ← Back
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            Back
           </button>
         </div>
       </div>
@@ -480,7 +477,7 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
               <button
                 type="button"
                 onClick={clearDraft}
-                className="px-4 py-2 text-sm rounded-lg transition-colors"
+                className="btn btn-ghost btn-sm"
                 style={{ color: 'var(--admin-danger)' }}
               >
                 Clear Draft
@@ -492,18 +489,14 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
               type="button"
               onClick={(e) => handleSubmit(e, true)}
               disabled={saving}
-              className="px-6 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-              style={{
-                backgroundColor: 'var(--admin-border-light)',
-                color: 'var(--admin-text)'
-              }}
+              className="btn btn-secondary disabled:opacity-50"
             >
               {saving ? 'Saving...' : 'Save as Draft'}
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="quick-action-btn primary px-6 py-2.5 disabled:opacity-50"
+              className="btn btn-primary disabled:opacity-50"
             >
               {saving ? 'Publishing...' : 'Publish Post'}
             </button>

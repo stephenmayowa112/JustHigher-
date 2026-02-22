@@ -5,13 +5,13 @@ import { Post } from '@/lib/types';
 // This page uses Server-Side Generation to fetch posts at build time
 export default async function Home() {
   let posts: Post[] = [];
-  
+
   try {
     // Fetch published posts from Supabase
     posts = await getPublishedPosts(20); // Get latest 20 posts
   } catch (error) {
     console.error('Error fetching posts:', error);
-    
+
     // Fallback to sample data if database is not configured
     posts = [
       {
@@ -66,7 +66,7 @@ Welcome to the climb.`,
             The Journey Begins:
           </h2>
           <p className="text-blue-800">
-            Every day, you have a choice: stay where you are or climb a little higher. 
+            Every day, you have a choice: stay where you are or climb a little higher.
             This is your invitation to join the journey toward becoming who you're meant to be.
           </p>
         </div>
@@ -77,9 +77,9 @@ Welcome to the climb.`,
   return (
     <div className="space-y-0">
       {posts.map((post, index) => (
-        <PostCard 
-          key={post.id} 
-          post={post} 
+        <PostCard
+          key={post.id}
+          post={post}
           showDivider={index < posts.length - 1}
         />
       ))}

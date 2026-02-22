@@ -21,7 +21,7 @@ export default function PostContent({ post }: PostContentProps) {
         <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-gray-900 bg-clip-text text-transparent leading-tight tracking-tight">
           {post.title}
         </h1>
-        
+
         {/* Tags */}
         {post.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
@@ -39,7 +39,7 @@ export default function PostContent({ post }: PostContentProps) {
 
       {/* Post Content */}
       <div className="prose-seth max-w-none">
-        <div 
+        <div
           dangerouslySetInnerHTML={{ __html: formatPostContent(post.content) }}
         />
       </div>
@@ -75,7 +75,7 @@ export default function PostContent({ post }: PostContentProps) {
             <div className="flex-1">
               <h3 className="text-sm font-semibold text-gray-900 mb-2">Share this post</h3>
               <p className="text-xs text-gray-600 mb-3">Help others discover this content</p>
-              <ShareButtons 
+              <ShareButtons
                 title={post.title}
                 url={postUrl}
                 description={post.meta_description || post.content.slice(0, 155)}
@@ -114,7 +114,7 @@ export default function PostContent({ post }: PostContentProps) {
         <div className="text-center space-y-4">
           {/* Back to home link */}
           <div>
-            <a 
+            <a
               href="/"
               className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors px-4 py-2 rounded-lg hover:bg-blue-50"
             >
@@ -156,13 +156,13 @@ function formatPostContent(content: string): string {
 
     // Handle bold text
     let formattedParagraph = paragraph.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900">$1</strong>');
-    
+
     // Handle italic text
     formattedParagraph = formattedParagraph.replace(/\*(.*?)\*/g, '<em class="italic text-gray-700">$1</em>');
-    
+
     // Handle links
     formattedParagraph = formattedParagraph.replace(
-      /\[([^\]]+)\]\(([^)]+)\)/g, 
+      /\[([^\]]+)\]\(([^)]+)\)/g,
       '<a href="$2" class="text-blue-600 hover:text-blue-800 underline decoration-blue-300 hover:decoration-blue-500 transition-colors">$1</a>'
     );
 

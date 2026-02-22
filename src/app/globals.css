@@ -10,15 +10,15 @@
   --color-foreground: var(--foreground);
   --font-serif: Georgia, 'Times New Roman', serif;
   --font-sans: Inter, system-ui, sans-serif;
-  
+
   /* Custom spacing for Seth Godin aesthetic */
   --spacing-18: 4.5rem;
   --spacing-88: 22rem;
-  
+
   /* Typography scale */
   --font-size-prose: 1.125rem;
   --line-height-prose: 1.75;
-  
+
   /* Content width constraint */
   --max-width-prose: 700px;
 }
@@ -55,8 +55,8 @@ body {
   }
 }
 
-.prose-seth h1, 
-.prose-seth h2, 
+.prose-seth h1,
+.prose-seth h2,
 .prose-seth h3 {
   color: #111827;
   margin-top: 1.5rem;
@@ -65,8 +65,9 @@ body {
 }
 
 @media (min-width: 640px) {
-  .prose-seth h1, 
-  .prose-seth h2, 
+
+  .prose-seth h1,
+  .prose-seth h2,
   .prose-seth h3 {
     margin-top: 2.5rem;
     margin-bottom: 1.25rem;
@@ -89,9 +90,9 @@ body {
   line-height: 1.33;
 }
 
-.prose-seth h1 + p, 
-.prose-seth h2 + p, 
-.prose-seth h3 + p {
+.prose-seth h1+p,
+.prose-seth h2+p,
+.prose-seth h3+p {
   margin-top: 0;
 }
 
@@ -126,6 +127,7 @@ body {
     opacity: 0;
     transform: translateY(-4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

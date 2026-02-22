@@ -11,7 +11,7 @@ export default function NewsletterForm({ onSubscribe }: NewsletterFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email.trim()) {
       setStatus('error');
       setMessage('Please enter your email address');
@@ -48,14 +48,14 @@ export default function NewsletterForm({ onSubscribe }: NewsletterFormProps) {
         setStatus('success');
         setMessage('Successfully subscribed! Thank you for joining.');
         setEmail('');
-        
+
         // Call the callback if provided (for analytics)
         if (onSubscribe) {
           await onSubscribe(email);
         }
       } else {
         setStatus('error');
-        
+
         // Handle specific error codes
         switch (data.code) {
           case 'ALREADY_SUBSCRIBED':
@@ -97,26 +97,24 @@ export default function NewsletterForm({ onSubscribe }: NewsletterFormProps) {
             if (status === 'error') resetStatus();
           }}
           placeholder="Enter your email"
-          className={`w-full px-3 py-2 border rounded-md text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-            status === 'error' 
-              ? 'border-red-300 focus:ring-red-500' 
+          className={`w-full px-3 py-2 border rounded-md text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${status === 'error'
+              ? 'border-red-300 focus:ring-red-500'
               : 'border-gray-300'
-          }`}
+            }`}
           disabled={status === 'loading' || status === 'success'}
           aria-label="Email address for newsletter"
           aria-describedby={message ? 'newsletter-message' : undefined}
         />
-        
+
         <button
           type="submit"
           disabled={status === 'loading' || status === 'success'}
-          className={`w-full px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${
-            status === 'success'
+          className={`w-full px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${status === 'success'
               ? 'bg-green-600 text-white cursor-default'
               : status === 'loading'
-              ? 'bg-gray-400 text-white cursor-not-allowed'
-              : 'bg-gray-900 text-white hover:bg-gray-800 focus:ring-gray-500'
-          }`}
+                ? 'bg-gray-400 text-white cursor-not-allowed'
+                : 'bg-gray-900 text-white hover:bg-gray-800 focus:ring-gray-500'
+            }`}
         >
           {status === 'loading' && (
             <span className="inline-flex items-center">
@@ -141,15 +139,14 @@ export default function NewsletterForm({ onSubscribe }: NewsletterFormProps) {
 
       {/* Status Message */}
       {message && (
-        <div 
+        <div
           id="newsletter-message"
-          className={`text-sm ${
-            status === 'success' 
-              ? 'text-green-600' 
-              : status === 'error' 
-              ? 'text-red-600' 
-              : 'text-gray-600'
-          }`}
+          className={`text-sm ${status === 'success'
+              ? 'text-green-600'
+              : status === 'error'
+                ? 'text-red-600'
+                : 'text-gray-600'
+            }`}
           role={status === 'error' ? 'alert' : undefined}
           aria-live="polite"
         >

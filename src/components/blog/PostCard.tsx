@@ -18,7 +18,7 @@ export default function PostCard({ post, showDivider = true }: PostCardProps) {
           <h1 className="text-3xl font-bold text-gray-900 leading-tight tracking-tight hover:text-blue-700 transition-colors">
             <a href={`/${post.slug}`}>{post.title}</a>
           </h1>
-          
+
           {/* Tags only */}
           {post.tags && post.tags.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
@@ -36,7 +36,7 @@ export default function PostCard({ post, showDivider = true }: PostCardProps) {
 
         {/* Post Content */}
         <div className="prose-seth">
-          <div 
+          <div
             dangerouslySetInnerHTML={{ __html: formatPostContent(post.content) }}
           />
         </div>
@@ -63,7 +63,7 @@ export default function PostCard({ post, showDivider = true }: PostCardProps) {
 
           {/* Share Buttons */}
           <div className="pt-2">
-            <ShareButtons 
+            <ShareButtons
               title={post.title}
               url={postUrl}
               description={post.meta_description || post.content.slice(0, 155)}
@@ -106,13 +106,13 @@ function formatPostContent(content: string): string {
 
     // Handle bold text
     let formattedParagraph = paragraph.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    
+
     // Handle italic text
     formattedParagraph = formattedParagraph.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    
+
     // Handle links
     formattedParagraph = formattedParagraph.replace(
-      /\[([^\]]+)\]\(([^)]+)\)/g, 
+      /\[([^\]]+)\]\(([^)]+)\)/g,
       '<a href="$2" class="text-blue-600 hover:text-blue-800 underline">$1</a>'
     );
 

@@ -23,6 +23,9 @@ export default function PostsList({ posts, onRefresh }: PostsListProps) {
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [showDeleteModal, setShowDeleteModal] = useState<{ id: string; title: string } | null>(null);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+    const [sendingNewsletter, setSendingNewsletter] = useState<string | null>(null);
+    const [showNewsletterModal, setShowNewsletterModal] = useState<{ id: string; title: string } | null>(null);
+    const [newsletterToast, setNewsletterToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
     const filteredPosts = useMemo(() => {
         let result = [...posts];
@@ -64,6 +67,30 @@ export default function PostsList({ posts, onRefresh }: PostsListProps) {
             console.error('Failed to toggle publish:', error);
         } finally {
             setTogglePublish(null);
+        }
+    };
+
+    const handleSendNewsletter = async (postId: string) => {
+        setSendingNewsletter(postId);
+        setShowNewsletterModal(null);
+        try {
+            const res = await fetch('/api/send-newsletter', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ postId }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setNewsletterToast({ type: 'success', message: data.message });
+            } else {
+                setNewsletterToast({ type: 'error', message: data.error || 'Failed to send newsletter' });
+            }
+        } catch (error) {
+            console.error('Newsletter send error:', error);
+            setNewsletterToast({ type: 'error', message: 'Network error sending newsletter' });
+        } finally {
+            setSendingNewsletter(null);
+            setTimeout(() => setNewsletterToast(null), 5000);
         }
     };
 
@@ -276,6 +303,23 @@ export default function PostsList({ posts, onRefresh }: PostsListProps) {
                                                         </svg>
                                                     </Link>
                                                 )}
+                                                {post.published_at && (
+                                                    <button
+                                                        onClick={() => setShowNewsletterModal({ id: post.id, title: post.title })}
+                                                        disabled={sendingNewsletter === post.id}
+                                                        className="btn btn-ghost btn-icon disabled:opacity-50"
+                                                        title="Send as newsletter"
+                                                        style={{ color: 'var(--admin-primary)' }}
+                                                    >
+                                                        {sendingNewsletter === post.id ? (
+                                                            <span className="text-xs">...</span>
+                                                        ) : (
+                                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                            </svg>
+                                                        )}
+                                                    </button>
+                                                )}
                                                 <Link
                                                     href={`/admin/posts/${post.id}/edit` as Route}
                                                     className="btn btn-ghost btn-icon"
@@ -379,6 +423,54 @@ export default function PostsList({ posts, onRefresh }: PostsListProps) {
                             <button onClick={handleBulkDelete} className="btn btn-danger btn-sm">Delete All</button>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* Newsletter Confirmation Modal */}
+            {showNewsletterModal && (
+                <div className="modal-overlay" onClick={() => setShowNewsletterModal(null)}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--admin-primary-light, #eff6ff)' }}>
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--admin-primary)' }}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 className="font-semibold" style={{ color: 'var(--admin-text)' }}>Send Newsletter</h3>
+                                <p className="text-sm" style={{ color: 'var(--admin-text-secondary)' }}>Email this post to all subscribers.</p>
+                            </div>
+                        </div>
+                        <p className="text-sm mb-6" style={{ color: 'var(--admin-text-secondary)' }}>
+                            Send <strong style={{ color: 'var(--admin-text)' }}>&quot;{showNewsletterModal.title}&quot;</strong> to all active newsletter subscribers?
+                        </p>
+                        <div className="flex justify-end gap-2">
+                            <button onClick={() => setShowNewsletterModal(null)} className="btn btn-secondary btn-sm">Cancel</button>
+                            <button onClick={() => handleSendNewsletter(showNewsletterModal.id)} className="btn btn-primary btn-sm">Send Newsletter</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Newsletter Toast */}
+            {newsletterToast && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        bottom: '24px',
+                        right: '24px',
+                        padding: '12px 20px',
+                        borderRadius: '8px',
+                        backgroundColor: newsletterToast.type === 'success' ? '#059669' : '#dc2626',
+                        color: '#fff',
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                        zIndex: 9999,
+                        animation: 'fadeIn 0.3s ease',
+                    }}
+                >
+                    {newsletterToast.message}
                 </div>
             )}
         </div>

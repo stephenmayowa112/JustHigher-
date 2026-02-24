@@ -1,15 +1,17 @@
 import PostEditor from '@/components/admin/PostEditor';
 
 interface EditPostPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function EditPost({ params }: EditPostPageProps) {
+export default async function EditPost({ params }: EditPostPageProps) {
+  const { id } = await params;
+  
   return (
     <div>
-      <PostEditor postId={params.id} isEditing={true} />
+      <PostEditor postId={id} isEditing={true} />
     </div>
   );
 }

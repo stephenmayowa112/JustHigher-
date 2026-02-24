@@ -123,6 +123,7 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
       const post = await getPostById(postId);
 
       if (post) {
+        console.log('Post loaded:', { id: post.id, title: post.title, contentLength: post.content?.length });
         setFormData({
           title: post.title,
           content: post.content,
@@ -324,6 +325,7 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
               style={{ borderColor: 'var(--admin-border)' }}
             >
               <ReactQuill
+                key={postId || 'new-post'}
                 theme="snow"
                 value={formData.content}
                 onChange={handleContentChange}

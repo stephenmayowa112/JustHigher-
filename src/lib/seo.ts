@@ -38,6 +38,13 @@ export function generateDefaultMetadata(): Metadata {
     authors: [{ name: siteConfig.author.name, url: siteConfig.author.url }],
     creator: siteConfig.author.name,
     publisher: siteConfig.author.name,
+    icons: {
+      icon: [
+        { url: '/favicon.svg', type: 'image/svg+xml' },
+        { url: '/favicon.ico', sizes: '32x32' },
+      ],
+      apple: '/apple-touch-icon.png',
+    },
     formatDetection: {
       email: false,
       address: false,

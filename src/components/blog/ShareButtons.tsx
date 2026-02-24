@@ -46,21 +46,24 @@ export default function ShareButtons({ title, url, description }: ShareButtonsPr
   const facebookQuote = `${shareIntro}: "${title}"`;
   const encodedFacebookQuote = encodeURIComponent(facebookQuote);
 
-  // For email, create a more detailed message
-  const emailBody = `Hi,
-
-I came across this powerful article and thought you'd find it inspiring:
-
-${shareIntro}
-
-"${title}"
-
-${description || 'Ideas that elevate, inspire, and push you toward your potential.'}
-
-Read it here: ${shareUrl}
-
-Stay inspired,
-JustHigher Blog`;
+  // For email, create a more detailed message using explicit \n to avoid
+  // Windows \r\n vs browser \n hydration mismatch
+  const emailBody = [
+    'Hi,',
+    '',
+    "I came across this powerful article and thought you'd find it inspiring:",
+    '',
+    shareIntro,
+    '',
+    `"${title}"`,
+    '',
+    description || 'Ideas that elevate, inspire, and push you toward your potential.',
+    '',
+    `Read it here: ${shareUrl}`,
+    '',
+    'Stay inspired,',
+    'JustHigher Blog',
+  ].join('\n');
 
   const encodedEmailBody = encodeURIComponent(emailBody);
 
@@ -69,7 +72,7 @@ JustHigher Blog`;
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedFacebookQuote}`,
     linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
     whatsapp: `https://wa.me/?text=${encodedWhatsappText}`,
-    email: `mailto:?subject=${encodeURIComponent(`Inspiring Read: ${title}`)}&body=${encodedEmailBody}`,
+    email: `mailto:?subject=${encodeURIComponent('Inspiring Read: ' + title)}&body=${encodedEmailBody}`,
   };
 
   const copyToClipboard = async () => {

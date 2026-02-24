@@ -27,7 +27,12 @@ export async function getPublishedPosts(limit?: number, offset?: number): Promis
       const { data, error } = await query;
 
       if (error) {
-        console.error('Error fetching published posts:', error);
+        console.error('Error fetching published posts:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+        });
         throw new Error(`Failed to fetch posts: ${error.message}`);
       }
 

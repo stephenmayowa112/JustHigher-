@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getPublishedPosts } from '@/lib/blog';
 import { Post } from '@/lib/types';
 
 export default function TopPostsSection() {
@@ -13,8 +12,12 @@ export default function TopPostsSection() {
   useEffect(() => {
     async function loadTopPosts() {
       try {
-        // Get the 20 most recent published posts
-        const posts = await getPublishedPosts(20);
+        // Fetch from API route (server-side Supabase query)
+        const res = await fetch('/api/posts?limit=20');
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const posts = await res.json();
         setTopPosts(posts);
         setError(false);
       } catch (err) {

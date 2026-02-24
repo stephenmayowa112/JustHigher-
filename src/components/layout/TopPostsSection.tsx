@@ -10,10 +10,14 @@ export default function TopPostsSection() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     async function loadTopPosts() {
       try {
         // Fetch from API route (server-side Supabase query)
-        const res = await fetch('/api/posts?limit=20');
+        const res = await fetch('/api/posts?limit=20', {
+          signal: controller.signal,
+        });
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
         }
@@ -21,16 +25,22 @@ export default function TopPostsSection() {
         setTopPosts(posts);
         setError(false);
       } catch (err) {
+        // Ignore abort errors (React strict mode cleanup)
+        if (err instanceof DOMException && err.name === 'AbortError') return;
         console.error('Error loading top posts:', err);
         setError(true);
         // Set empty array on error
         setTopPosts([]);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     }
 
     loadTopPosts();
+
+    return () => controller.abort();
   }, []);
 
   if (loading) {

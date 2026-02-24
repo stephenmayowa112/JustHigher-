@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getPublishedPosts } from '@/lib/blog';
 import { Post } from '@/lib/types';
 
 interface ArchiveMonth {
@@ -20,23 +19,31 @@ export default function ArchivesSection() {
   const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     async function loadArchives() {
       try {
-        const posts = await getPublishedPosts(100);
-        
+        const res = await fetch('/api/posts?limit=100', {
+          signal: controller.signal,
+        });
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const posts: Post[] = await res.json();
+
         // Group posts by month
         const archiveMap = new Map<string, ArchiveMonth>();
-        
+
         posts.forEach(post => {
           const date = new Date(post.published_at || post.created_at);
           const year = date.getFullYear();
           const month = date.getMonth();
           const key = `${year}-${month}`;
-          
+
           if (!archiveMap.has(key)) {
             const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
               'July', 'August', 'September', 'October', 'November', 'December'];
-            
+
             archiveMap.set(key, {
               year,
               month,
@@ -45,31 +52,37 @@ export default function ArchivesSection() {
               posts: []
             });
           }
-          
+
           const archive = archiveMap.get(key)!;
           archive.count++;
           archive.posts.push(post);
         });
-        
+
         // Convert to array and sort by date (newest first)
         const archiveArray = Array.from(archiveMap.values())
           .sort((a, b) => {
             if (a.year !== b.year) return b.year - a.year;
             return b.month - a.month;
           });
-        
+
         setArchives(archiveArray);
         setError(false);
       } catch (err) {
+        // Ignore abort errors (React strict mode cleanup)
+        if (err instanceof DOMException && err.name === 'AbortError') return;
         console.error('Error loading archives:', err);
         setError(true);
         setArchives([]);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     }
 
     loadArchives();
+
+    return () => controller.abort();
   }, []);
 
   if (loading) {
@@ -99,7 +112,7 @@ export default function ArchivesSection() {
       {archives.map(archive => {
         const key = `${archive.year}-${archive.month}`;
         const isExpanded = expandedMonth === key;
-        
+
         return (
           <div key={key} className="rounded-lg overflow-hidden">
             <button
@@ -108,10 +121,10 @@ export default function ArchivesSection() {
               className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 transition-all duration-200 group"
             >
               <div className="flex items-center gap-2">
-                <svg 
-                  className={`w-4 h-4 text-green-600 transition-transform ${isExpanded ? 'rotate-90' : ''}`} 
-                  fill="none" 
-                  stroke="currentColor" 
+                <svg
+                  className={`w-4 h-4 text-green-600 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -124,7 +137,7 @@ export default function ArchivesSection() {
                 {archive.count}
               </span>
             </button>
-            
+
             {isExpanded && (
               <div className="pl-6 pr-2 py-2 space-y-1 bg-gradient-to-r from-green-50/50 to-emerald-50/50">
                 {archive.posts.map(post => (

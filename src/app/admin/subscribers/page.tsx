@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { getRecentSubscribers } from '@/lib/blog';
+import { getAllSubscribers } from '@/lib/blog';
 import { Subscriber } from '@/lib/types';
 
 export default function AdminSubscribers() {
@@ -10,18 +10,114 @@ export default function AdminSubscribers() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
+  // Add subscriber state
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [addLoading, setAddLoading] = useState(false);
+  const [addError, setAddError] = useState('');
+
+  // Action state
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState<{ id: string; email: string } | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Toast
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
   useEffect(() => {
     loadSubscribers();
   }, []);
 
   const loadSubscribers = async () => {
     try {
-      const allSubscribers = await getRecentSubscribers(1000);
+      const allSubscribers = await getAllSubscribers(1000);
       setSubscribers(allSubscribers);
     } catch (error) {
       console.error('Error loading subscribers:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const showToast = (type: 'success' | 'error', message: string) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleAddSubscriber = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newEmail.trim()) return;
+
+    setAddLoading(true);
+    setAddError('');
+
+    try {
+      const res = await fetch('/api/subscribers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: newEmail.trim() }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast('success', `Added ${newEmail.trim()}`);
+        setNewEmail('');
+        setShowAddForm(false);
+        await loadSubscribers();
+      } else {
+        setAddError(data.error || 'Failed to add subscriber');
+      }
+    } catch {
+      setAddError('Network error');
+    } finally {
+      setAddLoading(false);
+    }
+  };
+
+  const handleToggleStatus = async (subscriber: Subscriber) => {
+    setTogglingId(subscriber.id);
+    try {
+      const res = await fetch('/api/subscribers', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: subscriber.id, active: !subscriber.active }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast('success', `${subscriber.email} ${subscriber.active ? 'deactivated' : 'reactivated'}`);
+        await loadSubscribers();
+      } else {
+        showToast('error', data.error || 'Failed to update');
+      }
+    } catch {
+      showToast('error', 'Network error');
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    setShowDeleteModal(null);
+    try {
+      const res = await fetch('/api/subscribers', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast('success', 'Subscriber deleted');
+        await loadSubscribers();
+      } else {
+        showToast('error', data.error || 'Failed to delete');
+      }
+    } catch {
+      showToast('error', 'Network error');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -87,6 +183,19 @@ export default function AdminSubscribers() {
 
   return (
     <div className="space-y-6">
+      {/* Toast */}
+      {toast && (
+        <div
+          className="fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium animate-fade-in"
+          style={{
+            backgroundColor: toast.type === 'success' ? 'var(--admin-success)' : 'var(--admin-danger)',
+            color: 'white',
+          }}
+        >
+          {toast.message}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -97,13 +206,53 @@ export default function AdminSubscribers() {
             Manage your newsletter subscribers
           </p>
         </div>
-        <button onClick={exportSubscribers} className="btn btn-primary">
-          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Export CSV
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => { setShowAddForm(!showAddForm); setAddError(''); }} className="btn btn-accent">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Subscriber
+          </button>
+          <button onClick={exportSubscribers} className="btn btn-secondary">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Export CSV
+          </button>
+        </div>
       </div>
+
+      {/* Add Subscriber Form */}
+      {showAddForm && (
+        <div className="admin-card p-4 animate-fade-in">
+          <form onSubmit={handleAddSubscriber} className="flex items-end gap-3">
+            <div className="flex-1">
+              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--admin-text-secondary)' }}>
+                Email Address
+              </label>
+              <input
+                type="email"
+                value={newEmail}
+                onChange={(e) => { setNewEmail(e.target.value); setAddError(''); }}
+                placeholder="subscriber@example.com"
+                className="w-full px-3 py-2 rounded-lg border text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                style={{ backgroundColor: 'var(--admin-bg)', borderColor: 'var(--admin-border)', color: 'var(--admin-text)' }}
+                required
+                autoFocus
+              />
+              {addError && (
+                <p className="text-xs mt-1" style={{ color: 'var(--admin-danger)' }}>{addError}</p>
+              )}
+            </div>
+            <button type="submit" disabled={addLoading} className="btn btn-accent" style={{ height: '38px' }}>
+              {addLoading ? 'Adding...' : 'Add'}
+            </button>
+            <button type="button" onClick={() => setShowAddForm(false)} className="btn btn-ghost" style={{ height: '38px' }}>
+              Cancel
+            </button>
+          </form>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -184,7 +333,7 @@ export default function AdminSubscribers() {
             {search ? 'No subscribers found' : 'No subscribers yet'}
           </p>
           <p className="text-sm" style={{ color: 'var(--admin-text-secondary)' }}>
-            {search ? `No subscribers matching "${search}"` : 'Subscribers will appear here when people sign up for your newsletter.'}
+            {search ? `No subscribers matching "${search}"` : 'Click "Add Subscriber" to add one manually, or wait for people to sign up via your newsletter form.'}
           </p>
         </div>
       ) : (
@@ -197,6 +346,7 @@ export default function AdminSubscribers() {
                   <th>Subscribed</th>
                   <th className="hidden md:table-cell">Source</th>
                   <th>Status</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -222,6 +372,45 @@ export default function AdminSubscribers() {
                         {subscriber.active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
+                    <td>
+                      <div className="flex items-center justify-end gap-1">
+                        {/* Toggle Status */}
+                        <button
+                          onClick={() => handleToggleStatus(subscriber)}
+                          disabled={togglingId === subscriber.id}
+                          className="btn btn-ghost btn-sm"
+                          title={subscriber.active ? 'Deactivate' : 'Reactivate'}
+                        >
+                          {togglingId === subscriber.id ? (
+                            <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--admin-border)', borderTopColor: 'var(--admin-accent)' }} />
+                          ) : subscriber.active ? (
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                            </svg>
+                          ) : (
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </button>
+                        {/* Delete */}
+                        <button
+                          onClick={() => setShowDeleteModal({ id: subscriber.id, email: subscriber.email })}
+                          disabled={deletingId === subscriber.id}
+                          className="btn btn-ghost btn-sm"
+                          title="Delete subscriber"
+                          style={{ color: 'var(--admin-danger)' }}
+                        >
+                          {deletingId === subscriber.id ? (
+                            <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--admin-border)', borderTopColor: 'var(--admin-danger)' }} />
+                          ) : (
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -231,6 +420,38 @@ export default function AdminSubscribers() {
             <p className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>
               Showing {filteredSubscribers.length} of {subscribers.length} subscribers
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={() => setShowDeleteModal(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center">
+              <div
+                className="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center"
+                style={{ backgroundColor: 'var(--admin-danger-light)' }}
+              >
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--admin-danger)' }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--admin-text)' }}>
+                Delete Subscriber
+              </h3>
+              <p className="text-sm mb-6" style={{ color: 'var(--admin-text-secondary)' }}>
+                Are you sure you want to permanently delete <strong style={{ color: 'var(--admin-text)' }}>{showDeleteModal.email}</strong>? This cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <button onClick={() => setShowDeleteModal(null)} className="btn btn-secondary">
+                  Cancel
+                </button>
+                <button onClick={() => handleDelete(showDeleteModal.id)} className="btn btn-danger">
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

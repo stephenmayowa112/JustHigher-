@@ -14,7 +14,7 @@ test.describe('Search Flow', () => {
 
     test('search with a query updates URL and shows results or no-results', async ({ page }) => {
         await page.goto('/search');
-        const searchInput = page.getByPlaceholder(/search/i);
+        const searchInput = page.getByPlaceholder('Search for posts...');
         await searchInput.fill('welcome');
         await searchInput.press('Enter');
 

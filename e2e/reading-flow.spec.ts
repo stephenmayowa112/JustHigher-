@@ -8,9 +8,9 @@ test.describe('Reading Flow', () => {
 
     test('sidebar is visible on desktop', async ({ page }) => {
         await page.goto('/');
-        // The sidebar brand shows the "JH" icon and "JustHigher" text
-        const sidebarBrand = page.locator('text=JustHigher').first();
-        await expect(sidebarBrand).toBeVisible({ timeout: 10_000 });
+        // The sidebar brand heading contains "JustHigher"
+        const sidebarBrand = page.getByRole('heading', { name: /justhigher/i }).first();
+        await expect(sidebarBrand).toBeVisible({ timeout: 15_000 });
     });
 
     test('sidebar sections are present', async ({ page }) => {

@@ -237,6 +237,92 @@ export async function getRecentSubscribers(limit: number = 10): Promise<Subscrib
 }
 
 /**
+ * Get all subscribers (including inactive) - Admin only
+ */
+export async function getAllSubscribers(limit: number = 1000): Promise<Subscriber[]> {
+  return withRetry(async () => {
+    const { data, error } = await supabase
+      .from('subscribers')
+      .select('*')
+      .order('subscribed_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching all subscribers:', error);
+      throw new Error(`Failed to fetch subscribers: ${error.message}`);
+    }
+
+    return data || [];
+  });
+}
+
+/**
+ * Add a subscriber manually - Admin only
+ */
+export async function addSubscriber(email: string, source: string = 'admin'): Promise<Subscriber> {
+  return withRetry(async () => {
+    const { data, error } = await supabase
+      .from('subscribers')
+      .insert({
+        email: email.toLowerCase().trim(),
+        source,
+        active: true
+      })
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') {
+        throw new Error('This email is already subscribed');
+      }
+      console.error('Error adding subscriber:', error);
+      throw new Error(`Failed to add subscriber: ${error.message}`);
+    }
+
+    invalidateCache.subscribers();
+    return data;
+  });
+}
+
+/**
+ * Toggle subscriber active status - Admin only
+ */
+export async function toggleSubscriberStatus(id: string, active: boolean): Promise<void> {
+  return withRetry(async () => {
+    const { error } = await supabase
+      .from('subscribers')
+      .update({ active })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error toggling subscriber status:', error);
+      throw new Error(`Failed to update subscriber: ${error.message}`);
+    }
+
+    invalidateCache.subscribers();
+  });
+}
+
+/**
+ * Delete a subscriber - Admin only
+ */
+export async function deleteSubscriber(id: string): Promise<void> {
+  return withRetry(async () => {
+    const { error } = await supabase
+      .from('subscribers')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting subscriber:', error);
+      throw new Error(`Failed to delete subscriber: ${error.message}`);
+    }
+
+    invalidateCache.subscribers();
+  });
+}
+
+/**
  * Create a new blog post - Admin only
  */
 export async function createPost(post: Omit<Post, 'id' | 'created_at' | 'updated_at'>): Promise<Post> {

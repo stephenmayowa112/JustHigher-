@@ -3,8 +3,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getAllSubscribers } from '@/lib/blog';
 import { Subscriber } from '@/lib/types';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 export default function AdminSubscribers() {
+  const { user, loading: authLoading } = useAuth();
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -25,8 +27,10 @@ export default function AdminSubscribers() {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
-    loadSubscribers();
-  }, []);
+    if (!authLoading && user) {
+      loadSubscribers();
+    }
+  }, [authLoading, user]);
 
   const loadSubscribers = async () => {
     try {

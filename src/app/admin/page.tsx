@@ -8,7 +8,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { Route } from 'next';
 
 export default function AdminDashboard() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [stats, setStats] = useState({
     totalPosts: 0,
     publishedPosts: 0,
@@ -57,9 +57,13 @@ export default function AdminDashboard() {
     }
   }, []);
 
+  // Wait for auth to be ready before fetching data
+  // This ensures the Supabase client has the session token attached
   useEffect(() => {
-    loadDashboardData();
-  }, [loadDashboardData]);
+    if (!authLoading && user) {
+      loadDashboardData();
+    }
+  }, [authLoading, user, loadDashboardData]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();

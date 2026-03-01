@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { getAllPosts } from '@/lib/blog';
 import { Post } from '@/lib/types';
 import PostsList from '@/components/admin/PostsList';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 export default function AdminPosts() {
+  const { user, loading: authLoading } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,8 +29,10 @@ export default function AdminPosts() {
   }, []);
 
   useEffect(() => {
-    loadPosts();
-  }, [loadPosts]);
+    if (!authLoading && user) {
+      loadPosts();
+    }
+  }, [authLoading, user, loadPosts]);
 
   if (loading) {
     return (

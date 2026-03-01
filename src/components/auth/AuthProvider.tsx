@@ -28,19 +28,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial user
-    getCurrentUser().then((user) => {
-      setUser(user);
-      setLoading(false);
-    });
+    let initialCheckDone = false;
 
-    // Listen for auth changes
+    // Listen for auth changes — this fires immediately with current session
     const { data: { subscription } } = onAuthStateChange((user) => {
       setUser(user);
       setLoading(false);
+      initialCheckDone = true;
     });
 
+    // Fallback: if onAuthStateChange hasn't fired within 500ms, fetch manually
+    const timeout = setTimeout(() => {
+      if (!initialCheckDone) {
+        getCurrentUser().then((user) => {
+          setUser(user);
+          setLoading(false);
+        });
+      }
+    }, 500);
+
     return () => {
+      clearTimeout(timeout);
       subscription.unsubscribe();
     };
   }, []);

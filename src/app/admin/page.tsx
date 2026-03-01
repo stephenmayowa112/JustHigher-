@@ -27,7 +27,7 @@ export default function AdminDashboard() {
 
     try {
       const [postsResult, subscriberCountResult, subscribersResult] = await Promise.allSettled([
-        getAllPosts(50),
+        getAllPosts(15),
         getSubscriberCount(),
         getRecentSubscribers(5),
       ]);

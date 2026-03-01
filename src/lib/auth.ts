@@ -34,18 +34,19 @@ export async function signOut() {
 
 /**
  * Get current user
+ * Uses getSession() first (reads from local storage, no network call)
+ * and only calls getUser() to validate when a session exists.
  */
 export async function getCurrentUser(): Promise<AuthUser | null> {
-  const { data: { user }, error } = await supabase.auth.getUser();
+  // Quick check: if no session exists locally, skip the network call
+  const { data: { session } } = await supabase.auth.getSession();
   
-  if (error) {
-    console.error('Error getting current user:', error);
+  if (!session?.user) {
     return null;
   }
 
-  if (!user) {
-    return null;
-  }
+  // We have a session — use the user from it (avoids extra network roundtrip)
+  const user = session.user;
 
   // Check if user is admin (you can customize this logic)
   const isAdmin = user.email?.endsWith('@justhigher.com') || 

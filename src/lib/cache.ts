@@ -142,8 +142,8 @@ export const invalidateCache = {
 // Retry logic for failed requests
 export async function withRetry<T>(
   operation: () => Promise<T>,
-  maxRetries: number = 3,
-  delayMs: number = 1000
+  maxRetries: number = 2,
+  delayMs: number = 500
 ): Promise<T> {
   let lastError: Error;
 
@@ -157,9 +157,8 @@ export async function withRetry<T>(
         break;
       }
 
-      // Exponential backoff
-      const delay = delayMs * Math.pow(2, attempt - 1);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      // Linear backoff with shorter delays
+      await new Promise(resolve => setTimeout(resolve, delayMs));
     }
   }
 

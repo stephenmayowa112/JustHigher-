@@ -132,12 +132,13 @@ export async function getPostById(id: string): Promise<Post | null> {
 
 /**
  * Get all posts (including unpublished) - Admin only
+ * Only selects columns needed for admin listing (excludes heavy content field)
  */
 export async function getAllPosts(limit?: number): Promise<Post[]> {
   return withRetry(async () => {
     let query = supabase
       .from('posts')
-      .select('*')
+      .select('id, title, slug, published_at, created_at, updated_at, tags, meta_description, reading_time')
       .order('created_at', { ascending: false });
 
     if (limit) {

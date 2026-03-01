@@ -31,11 +31,6 @@ export interface Database {
   };
 }
 
-// Typed Supabase client
-export const typedSupabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
-});
+// Re-export the same client as typedSupabase for backward compatibility
+// (Avoids creating a second client instance with duplicate auth overhead)
+export const typedSupabase = supabase;

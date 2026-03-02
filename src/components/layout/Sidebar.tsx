@@ -281,7 +281,7 @@ function SidebarContent({
         {/* Footer */}
         <div className="shrink-0 px-6 py-4 border-t border-gray-200 bg-white">
           <p className="text-xs text-gray-500">
-            © 2024 JustHigher Blog. All rights reserved.
+            © 2026 JustHigher Blog. All rights reserved.
           </p>
         </div>
       </div>

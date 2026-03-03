@@ -15,12 +15,16 @@
   --spacing-18: 4.5rem;
   --spacing-88: 22rem;
 
-  /* Typography scale */
-  --font-size-prose: 1.125rem;
+  /* Typography scale - responsive */
+  --font-size-prose: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
   --line-height-prose: 1.75;
 
   /* Content width constraint */
   --max-width-prose: 700px;
+  
+  /* Responsive spacing */
+  --spacing-section: clamp(1.5rem, 4vw, 3rem);
+  --spacing-card: clamp(1rem, 3vw, 1.5rem);
 }
 
 body {
@@ -33,67 +37,38 @@ body {
 /* Seth Godin inspired prose styles */
 .prose-seth {
   max-width: var(--max-width-prose);
-  font-size: 1rem;
-  line-height: 1.6;
+  font-size: var(--font-size-prose);
+  line-height: var(--line-height-prose);
   color: var(--foreground);
   word-wrap: break-word;
   overflow-wrap: break-word;
   word-break: break-word;
 }
 
-@media (min-width: 640px) {
-  .prose-seth {
-    font-size: var(--font-size-prose);
-    line-height: var(--line-height-prose);
-  }
-}
-
 .prose-seth p {
-  margin-bottom: 1.25rem;
+  margin-bottom: clamp(1rem, 2vw, 1.75rem);
   word-wrap: break-word;
   overflow-wrap: break-word;
-}
-
-@media (min-width: 640px) {
-  .prose-seth p {
-    margin-bottom: 1.75rem;
-  }
 }
 
 .prose-seth h1,
 .prose-seth h2,
 .prose-seth h3 {
   color: #111827;
-  margin-top: 1.5rem;
-  margin-bottom: 1rem;
+  margin-top: clamp(1.5rem, 3vw, 2.5rem);
+  margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
   font-weight: 700;
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
 
-@media (min-width: 640px) {
-
-  .prose-seth h1,
-  .prose-seth h2,
-  .prose-seth h3 {
-    margin-top: 2.5rem;
-    margin-bottom: 1.25rem;
-  }
-}
-
 .prose-seth h1 {
-  font-size: 1.75rem;
+  font-size: clamp(1.5rem, 4vw, 2rem);
   line-height: 1.25;
 }
 
-@media (min-width: 640px) {
-  .prose-seth h1 {
-    font-size: 2rem;
-  }
-}
-
 .prose-seth h2 {
-  font-size: 1.5rem;
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
   line-height: 1.33;
 }
 
@@ -120,14 +95,8 @@ body {
 /* Post divider styling */
 .post-divider {
   border-top: 1px solid #e5e7eb;
-  margin: 2rem 0;
+  margin: clamp(2rem, 4vw, 3rem) 0;
   position: relative;
-}
-
-@media (min-width: 640px) {
-  .post-divider {
-    margin: 3rem 0;
-  }
 }
 
 .post-divider::after {
@@ -157,4 +126,78 @@ body {
 
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
+}
+
+/* Responsive utilities */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+}
+
+/* Better line clamping for mobile */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Responsive container queries */
+@media (max-width: 640px) {
+  body {
+    font-size: 0.9375rem; /* 15px base for mobile */
+  }
+}
+
+/* Improve tap highlight and touch interaction on mobile */
+* {
+  -webkit-tap-highlight-color: rgba(37, 99, 235, 0.1);
+}
+
+a, button, [role="button"] {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: pointer;
+}
+
+/* Ensure clickable elements are accessible */
+a:focus-visible, 
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Better focus states for keyboard navigation */
+:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

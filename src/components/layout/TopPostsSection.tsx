@@ -67,17 +67,17 @@ export default function TopPostsSection() {
         <Link
           key={post.id}
           href={`/${post.slug}`}
-          className="group block p-3 rounded-lg hover:bg-gradient-to-r hover:from-amber-50 hover:to-orange-50 transition-all duration-200 border border-transparent hover:border-amber-200"
+          className="group block p-2.5 sm:p-3 rounded-lg hover:bg-gradient-to-r hover:from-amber-50 hover:to-orange-50 transition-all duration-200 border border-transparent hover:border-amber-200 touch-manipulation active:bg-amber-100"
         >
-          <div className="flex items-start gap-3">
-            <span className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-white text-xs font-bold">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <span className="shrink-0 w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-white text-xs font-bold">
               {index + 1}
             </span>
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-medium text-gray-900 group-hover:text-amber-900 line-clamp-2 leading-snug">
+              <h3 className="text-xs sm:text-sm font-medium text-gray-900 group-hover:text-amber-900 line-clamp-2 leading-snug">
                 {post.title}
               </h3>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 mt-0.5 sm:mt-1">
                 {post.reading_time || 5} min read
               </p>
             </div>

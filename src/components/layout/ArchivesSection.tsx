@@ -118,7 +118,7 @@ export default function ArchivesSection() {
             <button
               type="button"
               onClick={() => toggleMonth(key)}
-              className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 transition-all duration-200 group"
+              className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 transition-all duration-200 group touch-manipulation active:bg-green-100"
             >
               <div className="flex items-center gap-2">
                 <svg
@@ -144,7 +144,7 @@ export default function ArchivesSection() {
                   <Link
                     key={post.id}
                     href={`/${post.slug}`}
-                    className="block p-2 rounded text-sm text-gray-700 hover:text-green-900 hover:bg-white transition-colors"
+                    className="block p-2 rounded text-sm text-gray-700 hover:text-green-900 hover:bg-white transition-colors touch-manipulation active:bg-green-200"
                   >
                     <div className="line-clamp-2">{post.title}</div>
                     <div className="text-xs text-gray-500 mt-1">

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createPost, updatePost } from '@/lib/blog';
+import { generateSlug, validateAndFixSlug } from '@/lib/validation';
 import dynamic from 'next/dynamic';
 
 // Dynamically import React Quill to avoid SSR issues
@@ -143,20 +144,12 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
     }
   };
 
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9 -]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
-  };
-
   const handleTitleChange = (title: string) => {
+    const newSlug = prev.slug || generateSlug(title, 100);
     setFormData(prev => ({
       ...prev,
       title,
-      slug: prev.slug || generateSlug(title),
+      slug: newSlug,
     }));
   };
 
@@ -170,6 +163,15 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
     setError('');
 
     try {
+      // Validate and fix slug if needed
+      const slugValidation = validateAndFixSlug(formData.slug);
+      if (!slugValidation.isValid && slugValidation.fixedSlug) {
+        setError(`Slug was too long or invalid. Using: ${slugValidation.fixedSlug}`);
+        setFormData(prev => ({ ...prev, slug: slugValidation.fixedSlug! }));
+        setSaving(false);
+        return;
+      }
+
       const postData = {
         title: formData.title,
         content: formData.content,

@@ -70,10 +70,14 @@ export const createPostSchema = z.object({
   slug: z
     .string()
     .min(1, 'Slug is required')
-    .max(100, 'Slug is too long')
+    .max(100, 'Slug is too long (max 100 characters)')
     .regex(
       /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
       'Slug must contain only lowercase letters, numbers, and hyphens'
+    )
+    .refine(
+      (slug) => slug.length <= 100,
+      'Slug must be 100 characters or less for filesystem compatibility'
     ),
   tags: z
     .array(z.string().min(1).max(50))
@@ -163,6 +167,55 @@ export function sanitizeSearchQuery(query: string): string {
     .replace(/data:/gi, '') // Remove data: protocol
     .replace(/vbscript:/gi, '') // Remove vbscript: protocol
     .substring(0, 100); // Limit length
+}
+
+/**
+ * Generate a safe slug from a title
+ * Ensures the slug is filesystem-safe and within length limits
+ */
+export function generateSlug(title: string, maxLength: number = 100): string {
+  const slug = title
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/[\s_]+/g, '-') // Replace spaces and underscores with hyphens
+    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+    .replace(/-+/g, '-'); // Replace multiple hyphens with single hyphen
+  
+  // Truncate to max length, ensuring we don't cut in the middle of a word
+  if (slug.length > maxLength) {
+    const truncated = slug.substring(0, maxLength);
+    const lastHyphen = truncated.lastIndexOf('-');
+    return lastHyphen > 0 ? truncated.substring(0, lastHyphen) : truncated;
+  }
+  
+  return slug;
+}
+
+/**
+ * Validate and fix a slug to ensure it's safe
+ */
+export function validateAndFixSlug(slug: string): { isValid: boolean; fixedSlug?: string; error?: string } {
+  // Check if slug is too long
+  if (slug.length > 100) {
+    return {
+      isValid: false,
+      fixedSlug: generateSlug(slug, 100),
+      error: 'Slug is too long. Maximum length is 100 characters.'
+    };
+  }
+  
+  // Check if slug matches the pattern
+  const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+  if (!slugPattern.test(slug)) {
+    return {
+      isValid: false,
+      fixedSlug: generateSlug(slug, 100),
+      error: 'Slug contains invalid characters. Use only lowercase letters, numbers, and hyphens.'
+    };
+  }
+  
+  return { isValid: true };
 }
 
 // Rate limiting validation

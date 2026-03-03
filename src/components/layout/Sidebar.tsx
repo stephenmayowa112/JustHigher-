@@ -114,7 +114,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
             onClick={() => setIsMobileMenuOpen(false)}
             aria-hidden="true"
           />
-          <div className="relative flex flex-col max-w-xs w-full h-full bg-white">
+          <div className="relative flex flex-col max-w-xs w-full h-full bg-white z-50">
             <div className="absolute top-0 right-0 -mr-12 pt-2">
               <button
                 type="button"
@@ -134,7 +134,9 @@ export default function Sidebar({ className = '' }: SidebarProps) {
                 </svg>
               </button>
             </div>
-            <SidebarContent onSearch={handleSearch} onNewsletterSubscribe={handleNewsletterSubscribe} />
+            <div onClick={() => setIsMobileMenuOpen(false)}>
+              <SidebarContent onSearch={handleSearch} onNewsletterSubscribe={handleNewsletterSubscribe} />
+            </div>
           </div>
         </div>
       )}

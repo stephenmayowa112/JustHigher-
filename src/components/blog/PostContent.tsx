@@ -15,10 +15,10 @@ export default function PostContent({ post }: PostContentProps) {
   const postUrl = `${siteConfig.url}/${post.slug}`;
 
   return (
-    <article className="space-y-8">
+    <article className="space-y-8 overflow-hidden">
       {/* Post Header */}
       <header className="space-y-4 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-gray-900 bg-clip-text text-transparent leading-tight tracking-tight">
+        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-gray-900 bg-clip-text text-transparent leading-tight tracking-tight break-words">
           {post.title}
         </h1>
 
@@ -38,8 +38,9 @@ export default function PostContent({ post }: PostContentProps) {
       </header>
 
       {/* Post Content */}
-      <div className="prose-seth max-w-none">
+      <div className="prose-seth max-w-none overflow-hidden">
         <div
+          className="break-words"
           dangerouslySetInnerHTML={{ __html: formatPostContent(post.content) }}
         />
       </div>

@@ -12,10 +12,10 @@ export default function PostCard({ post, showDivider = true }: PostCardProps) {
 
   return (
     <>
-      <article className="space-y-6 hover:bg-blue-50/30 transition-colors duration-200 rounded-lg p-6 -mx-6">
+      <article className="space-y-6 hover:bg-blue-50/30 transition-colors duration-200 rounded-lg p-6 -mx-6 overflow-hidden">
         {/* Post Header */}
         <header className="space-y-3">
-          <h1 className="text-3xl font-bold text-gray-900 leading-tight tracking-tight hover:text-blue-700 transition-colors">
+          <h1 className="text-3xl font-bold text-gray-900 leading-tight tracking-tight hover:text-blue-700 transition-colors break-words">
             <a href={`/${post.slug}`}>{post.title}</a>
           </h1>
 
@@ -35,8 +35,9 @@ export default function PostCard({ post, showDivider = true }: PostCardProps) {
         </header>
 
         {/* Post Content */}
-        <div className="prose-seth">
+        <div className="prose-seth overflow-hidden">
           <div
+            className="break-words"
             dangerouslySetInnerHTML={{ __html: formatPostContent(post.content) }}
           />
         </div>

@@ -36,6 +36,9 @@ body {
   font-size: 1rem;
   line-height: 1.6;
   color: var(--foreground);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 @media (min-width: 640px) {
@@ -47,6 +50,8 @@ body {
 
 .prose-seth p {
   margin-bottom: 1.25rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 @media (min-width: 640px) {
@@ -62,6 +67,8 @@ body {
   margin-top: 1.5rem;
   margin-bottom: 1rem;
   font-weight: 700;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 @media (min-width: 640px) {
@@ -94,6 +101,20 @@ body {
 .prose-seth h2+p,
 .prose-seth h3+p {
   margin-top: 0;
+}
+
+/* Ensure links and inline elements wrap properly */
+.prose-seth a {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.prose-seth strong,
+.prose-seth em,
+.prose-seth code {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Post divider styling */

@@ -145,11 +145,10 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
   };
 
   const handleTitleChange = (title: string) => {
-    const newSlug = prev.slug || generateSlug(title, 100);
     setFormData(prev => ({
       ...prev,
       title,
-      slug: newSlug,
+      slug: prev.slug || generateSlug(title, 100),
     }));
   };
 

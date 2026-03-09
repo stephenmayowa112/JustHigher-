@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Post } from '@/lib/types';
+import { fetchJSON, requestDeduplicator } from '@/lib/fetch-utils';
 
 export default function TopPostsSection() {
   const [topPosts, setTopPosts] = useState<Post[]>([]);
@@ -10,37 +11,30 @@ export default function TopPostsSection() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    const controller = new AbortController();
-
     async function loadTopPosts() {
       try {
-        // Fetch from API route (server-side Supabase query)
-        const res = await fetch('/api/posts?limit=20', {
-          signal: controller.signal,
-        });
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        const posts = await res.json();
+        // Use request deduplication to prevent multiple simultaneous requests
+        const posts = await requestDeduplicator.dedupe('top-posts-20', () =>
+          fetchJSON<Post[]>('/api/posts?limit=20', {
+            timeout: 10000, // 10 second timeout
+            headers: {
+              'Cache-Control': 'public, max-age=300',
+            },
+          })
+        );
+        
         setTopPosts(posts);
         setError(false);
       } catch (err) {
-        // Ignore abort errors (React strict mode cleanup)
-        if (err instanceof DOMException && err.name === 'AbortError') return;
         console.error('Error loading top posts:', err);
         setError(true);
-        // Set empty array on error
         setTopPosts([]);
       } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     }
 
     loadTopPosts();
-
-    return () => controller.abort();
   }, []);
 
   if (loading) {

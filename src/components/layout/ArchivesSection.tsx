@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Post } from '@/lib/types';
+import { fetchJSON, requestDeduplicator } from '@/lib/fetch-utils';
 
 interface ArchiveMonth {
   year: number;
@@ -19,17 +20,17 @@ export default function ArchivesSection() {
   const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
 
   useEffect(() => {
-    const controller = new AbortController();
-
     async function loadArchives() {
       try {
-        const res = await fetch('/api/posts?limit=100', {
-          signal: controller.signal,
-        });
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        const posts: Post[] = await res.json();
+        // Use request deduplication
+        const posts = await requestDeduplicator.dedupe('archives-100', () =>
+          fetchJSON<Post[]>('/api/posts?limit=100', {
+            timeout: 10000,
+            headers: {
+              'Cache-Control': 'public, max-age=300',
+            },
+          })
+        );
 
         // Group posts by month
         const archiveMap = new Map<string, ArchiveMonth>();
@@ -68,21 +69,15 @@ export default function ArchivesSection() {
         setArchives(archiveArray);
         setError(false);
       } catch (err) {
-        // Ignore abort errors (React strict mode cleanup)
-        if (err instanceof DOMException && err.name === 'AbortError') return;
         console.error('Error loading archives:', err);
         setError(true);
         setArchives([]);
       } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     }
 
     loadArchives();
-
-    return () => controller.abort();
   }, []);
 
   if (loading) {

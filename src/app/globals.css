@@ -40,21 +40,21 @@ body {
   font-size: var(--font-size-prose);
   line-height: var(--line-height-prose);
   color: var(--foreground);
-  /* Wrap at word boundaries, break long words only if necessary */
+  /* Natural word wrapping */
   white-space: normal !important;
   word-break: normal !important;
-  overflow-wrap: break-word !important;
-  word-wrap: break-word !important;
+  overflow-wrap: normal !important;
+  word-wrap: normal !important;
   hyphens: none !important;
 }
 
 .prose-seth p {
   margin-bottom: clamp(1rem, 2vw, 1.75rem);
-  /* Wrap at word boundaries */
+  /* Natural word wrapping */
   white-space: normal !important;
   word-break: normal !important;
-  overflow-wrap: break-word !important;
-  word-wrap: break-word !important;
+  overflow-wrap: normal !important;
+  word-wrap: normal !important;
   hyphens: none !important;
 }
 
@@ -65,11 +65,11 @@ body {
   margin-top: clamp(1.5rem, 3vw, 2.5rem);
   margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
   font-weight: 700;
-  /* Wrap at word boundaries */
+  /* Natural word wrapping */
   white-space: normal !important;
   word-break: normal !important;
-  overflow-wrap: break-word !important;
-  word-wrap: break-word !important;
+  overflow-wrap: normal !important;
+  word-wrap: normal !important;
   hyphens: none !important;
 }
 

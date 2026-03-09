@@ -35,7 +35,7 @@ export default function PostCard({ post, showDivider = true }: PostCardProps) {
         </header>
 
         {/* Post Content */}
-        <div className="prose-seth overflow-hidden">
+        <div className="prose-seth break-normal">
           <div
             dangerouslySetInnerHTML={{ __html: formatPostContent(post.content) }}
           />

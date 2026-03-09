@@ -40,18 +40,20 @@ body {
   font-size: var(--font-size-prose);
   line-height: var(--line-height-prose);
   color: var(--foreground);
-  /* Only wrap at spaces, never break words */
-  white-space: normal;
+  /* Wrap at word boundaries, break long words only if necessary */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
   word-break: normal;
-  overflow-wrap: normal;
+  hyphens: none;
 }
 
 .prose-seth p {
   margin-bottom: clamp(1rem, 2vw, 1.75rem);
-  /* Only wrap at spaces */
-  white-space: normal;
+  /* Wrap at word boundaries */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
   word-break: normal;
-  overflow-wrap: normal;
+  hyphens: none;
 }
 
 .prose-seth h1,
@@ -61,10 +63,11 @@ body {
   margin-top: clamp(1.5rem, 3vw, 2.5rem);
   margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
   font-weight: 700;
-  /* Only wrap at spaces in headings */
-  white-space: normal;
+  /* Wrap at word boundaries */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
   word-break: normal;
-  overflow-wrap: normal;
+  hyphens: none;
 }
 
 .prose-seth h1 {
@@ -85,17 +88,15 @@ body {
 
 /* Ensure links and inline elements wrap properly */
 .prose-seth a {
-  /* Allow long URLs to break at any character */
-  word-break: break-all;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .prose-seth strong,
 .prose-seth em,
 .prose-seth code {
-  /* Normal wrapping for inline elements */
-  white-space: normal;
-  word-break: normal;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 /* Post divider styling */

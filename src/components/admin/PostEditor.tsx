@@ -171,6 +171,7 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
         return;
       }
 
+      const isPublishing = !isDraft && !formData.published_at;
       const postData = {
         title: formData.title,
         content: formData.content,
@@ -180,10 +181,33 @@ export default function PostEditor({ postId, isEditing = false }: PostEditorProp
         published_at: isDraft ? null : (formData.published_at || new Date().toISOString()),
       };
 
+      let savedPostId = postId;
+      
       if (isEditing && postId) {
         await updatePost(postId, postData);
       } else {
-        await createPost(postData);
+        const newPost = await createPost(postData);
+        savedPostId = newPost.id;
+      }
+
+      // Auto-send newsletter if publishing for the first time
+      if (isPublishing && savedPostId) {
+        try {
+          const res = await fetch('/api/send-newsletter', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ postId: savedPostId }),
+          });
+          const data = await res.json();
+          
+          if (!data.success) {
+            console.error('Newsletter send failed:', data.error);
+            // Don't block the save, just log the error
+          }
+        } catch (newsletterError) {
+          console.error('Newsletter send error:', newsletterError);
+          // Don't block the save, just log the error
+        }
       }
 
       localStorage.removeItem(autoSaveKey);

@@ -57,14 +57,54 @@ export default function PostsList({ posts, onRefresh }: PostsListProps) {
     const handleTogglePublish = async (post: Post) => {
         setTogglePublish(post.id);
         try {
+            const isPublishing = !post.published_at;
+            
             if (post.published_at) {
+                // Unpublishing
                 await updatePost(post.id, { published_at: null });
             } else {
+                // Publishing - set publish date
                 await updatePost(post.id, { published_at: new Date().toISOString() });
+                
+                // Automatically send newsletter when publishing
+                try {
+                    const res = await fetch('/api/send-newsletter', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ postId: post.id }),
+                    });
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        setNewsletterToast({ 
+                            type: 'success', 
+                            message: `Post published and newsletter sent! ${data.message}` 
+                        });
+                    } else {
+                        setNewsletterToast({ 
+                            type: 'error', 
+                            message: `Post published but newsletter failed: ${data.error}` 
+                        });
+                    }
+                    setTimeout(() => setNewsletterToast(null), 6000);
+                } catch (error) {
+                    console.error('Newsletter send error:', error);
+                    setNewsletterToast({ 
+                        type: 'error', 
+                        message: 'Post published but newsletter failed to send' 
+                    });
+                    setTimeout(() => setNewsletterToast(null), 6000);
+                }
             }
+            
             onRefresh();
         } catch (error) {
             console.error('Failed to toggle publish:', error);
+            setNewsletterToast({ 
+                type: 'error', 
+                message: 'Failed to publish post' 
+            });
+            setTimeout(() => setNewsletterToast(null), 5000);
         } finally {
             setTogglePublish(null);
         }

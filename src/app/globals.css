@@ -40,15 +40,19 @@ body {
   font-size: var(--font-size-prose);
   line-height: var(--line-height-prose);
   color: var(--foreground);
-  word-wrap: break-word;
+  /* Keep words intact, only break at word boundaries */
   overflow-wrap: break-word;
-  word-break: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
 }
 
 .prose-seth p {
   margin-bottom: clamp(1rem, 2vw, 1.75rem);
-  word-wrap: break-word;
+  /* Keep words intact */
   overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .prose-seth h1,
@@ -58,8 +62,9 @@ body {
   margin-top: clamp(1.5rem, 3vw, 2.5rem);
   margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
   font-weight: 700;
-  word-wrap: break-word;
+  /* Keep words intact in headings */
   overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .prose-seth h1 {
@@ -80,16 +85,17 @@ body {
 
 /* Ensure links and inline elements wrap properly */
 .prose-seth a {
-  word-wrap: break-word;
   overflow-wrap: break-word;
-  word-break: break-word;
+  word-wrap: break-word;
+  /* Allow long URLs to break if needed */
+  word-break: break-all;
 }
 
 .prose-seth strong,
 .prose-seth em,
 .prose-seth code {
-  word-wrap: break-word;
   overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 /* Post divider styling */

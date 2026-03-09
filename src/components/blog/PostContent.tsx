@@ -38,7 +38,7 @@ export default function PostContent({ post }: PostContentProps) {
       </header>
 
       {/* Post Content */}
-      <div className="prose-seth max-w-none break-normal">
+      <div className="prose-seth max-w-none">
         <div
           dangerouslySetInnerHTML={{ __html: formatPostContent(post.content) }}
         />

@@ -41,14 +41,14 @@ body {
   line-height: var(--line-height-prose);
   color: var(--foreground);
   overflow-wrap: break-word;
-  word-break: normal !important;
+  word-break: break-word;
   hyphens: none;
 }
 
 .prose-seth p {
   margin-bottom: clamp(1rem, 2vw, 1.75rem);
   overflow-wrap: break-word;
-  word-break: normal !important;
+  word-break: break-word;
   hyphens: none;
 }
 
@@ -60,7 +60,7 @@ body {
   margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
   font-weight: 700;
   overflow-wrap: break-word;
-  word-break: normal !important;
+  word-break: break-word;
   hyphens: none;
 }
 
@@ -91,6 +91,23 @@ body {
 .prose-seth code {
   overflow-wrap: break-word;
   word-wrap: break-word;
+}
+
+/* Prevent tables and code blocks from causing horizontal overflow */
+.prose-seth pre {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.prose-seth table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.prose-seth img {
+  max-width: 100%;
+  height: auto;
 }
 
 /* Post divider styling */
@@ -187,6 +204,11 @@ button:focus-visible,
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {

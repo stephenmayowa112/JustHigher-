@@ -131,9 +131,13 @@ export function generateNewsletterEmail(post: Post, unsubscribeUrl: string): str
 </html>`;
 }
 
-/** Strip HTML tags from content */
+/** Strip HTML tags and common entities from content */
 function stripHtml(html: string): string {
-    return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    return html
+        .replace(/&nbsp;/g, ' ')
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
 }
 
 /** Escape HTML entities */

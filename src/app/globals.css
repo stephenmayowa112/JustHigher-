@@ -40,14 +40,14 @@ body {
   font-size: var(--font-size-prose);
   line-height: var(--line-height-prose);
   color: var(--foreground);
-  overflow-wrap: normal !important;
+  overflow-wrap: break-word;
   word-break: normal !important;
   hyphens: none;
 }
 
 .prose-seth p {
   margin-bottom: clamp(1rem, 2vw, 1.75rem);
-  overflow-wrap: normal !important;
+  overflow-wrap: break-word;
   word-break: normal !important;
   hyphens: none;
 }
@@ -59,7 +59,7 @@ body {
   margin-top: clamp(1.5rem, 3vw, 2.5rem);
   margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
   font-weight: 700;
-  overflow-wrap: normal !important;
+  overflow-wrap: break-word;
   word-break: normal !important;
   hyphens: none;
 }
@@ -82,15 +82,15 @@ body {
 
 /* Ensure links and inline elements wrap properly */
 .prose-seth a {
-  overflow-wrap: normal !important;
-  word-wrap: normal;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .prose-seth strong,
 .prose-seth em,
 .prose-seth code {
-  overflow-wrap: normal;
-  word-wrap: normal;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 /* Post divider styling */

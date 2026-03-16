@@ -85,8 +85,12 @@ export default function PostCard({ post, showDivider = true }: PostCardProps) {
  * Converts markdown-like formatting to HTML and ensures proper paragraph structure
  */
 function formatPostContent(content: string): string {
+  // Sanitize content: replace non-breaking spaces (U+00A0) with standard spaces
+  // This prevents words from being glued together which causes mid-word wrapping
+  const sanitizedContent = content.replace(/\u00A0/g, ' ');
+
   // Split content into paragraphs
-  const paragraphs = content
+  const paragraphs = sanitizedContent
     .split('\n\n')
     .filter(p => p.trim().length > 0)
     .map(p => p.trim());

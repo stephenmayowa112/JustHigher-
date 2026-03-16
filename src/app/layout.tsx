@@ -29,7 +29,7 @@ export default function RootLayout({
         <StructuredData data={websiteJsonLd} />
         <StructuredData data={organizationJsonLd} />
       </head>
-      <body className="h-full bg-white text-gray-700 font-serif antialiased">
+      <body className="h-full bg-white text-gray-700 font-serif antialiased overflow-x-hidden">
         <div className="min-h-full flex flex-col lg:flex-row">
           {/* Sidebar Component */}
           <Sidebar />

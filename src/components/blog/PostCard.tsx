@@ -12,7 +12,7 @@ export default function PostCard({ post, showDivider = true }: PostCardProps) {
 
   return (
     <>
-      <article className="space-y-6 hover:bg-blue-50/30 transition-colors duration-200 rounded-lg p-4 sm:p-6 -mx-4 sm:-mx-6">
+      <article className="space-y-6 hover:bg-blue-50/30 transition-colors duration-200 rounded-lg p-4 sm:p-6">
         {/* Post Header */}
         <header className="space-y-3">
           <h1 className="text-3xl font-bold text-gray-900 leading-tight tracking-tight hover:text-blue-700 transition-colors">

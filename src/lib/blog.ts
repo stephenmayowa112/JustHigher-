@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, supabaseAdmin } from './supabase';
 import { Post, Subscriber } from './types';
 import { withCache, withRetry, cacheKeys, cacheTTL, invalidateCache } from './cache';
 
@@ -261,7 +261,7 @@ export async function getAllSubscribers(limit: number = 1000): Promise<Subscribe
  */
 export async function addSubscriber(email: string, source: string = 'admin'): Promise<Subscriber> {
   return withRetry(async () => {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('subscribers')
       .insert({
         email: email.toLowerCase().trim(),
@@ -289,7 +289,7 @@ export async function addSubscriber(email: string, source: string = 'admin'): Pr
  */
 export async function toggleSubscriberStatus(id: string, active: boolean): Promise<void> {
   return withRetry(async () => {
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('subscribers')
       .update({ active })
       .eq('id', id);
@@ -308,7 +308,7 @@ export async function toggleSubscriberStatus(id: string, active: boolean): Promi
  */
 export async function deleteSubscriber(id: string): Promise<void> {
   return withRetry(async () => {
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('subscribers')
       .delete()
       .eq('id', id);

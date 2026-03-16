@@ -34,3 +34,16 @@ export interface Database {
 // Re-export the same client as typedSupabase for backward compatibility
 // (Avoids creating a second client instance with duplicate auth overhead)
 export const typedSupabase = supabase;
+
+// Admin client for bypassing RLS in server-side admin routes only
+export const supabaseAdmin = createClient(
+  supabaseUrl,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+  {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  }
+);

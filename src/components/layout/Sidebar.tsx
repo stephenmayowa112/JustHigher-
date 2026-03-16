@@ -142,7 +142,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
       )}
 
       {/* Desktop sidebar - fixed position */}
-      <div className={`hidden lg:fixed lg:inset-y-0 lg:flex lg:w-88 lg:flex-col ${className}`}>
+      <div className={`hidden lg:fixed lg:inset-y-0 lg:z-10 lg:flex lg:w-88 lg:flex-col ${className}`}>
         <SidebarContent onSearch={handleSearch} onNewsletterSubscribe={handleNewsletterSubscribe} />
       </div>
     </SidebarErrorBoundary>

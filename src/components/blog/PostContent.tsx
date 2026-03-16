@@ -147,6 +147,12 @@ function formatPostContent(content: string): string {
 
   // Convert each paragraph to HTML
   const htmlParagraphs = paragraphs.map(paragraph => {
+    // If the paragraph is already HTML (e.g. from Quill editor), return it as-is
+    // to avoid invalid nesting like <p><p>...</p></p>
+    if (paragraph.startsWith('<')) {
+      return paragraph;
+    }
+
     // Handle headings
     if (paragraph.startsWith('# ')) {
       return `<h1 class="text-3xl font-bold text-gray-900 mt-8 mb-4">${paragraph.slice(2)}</h1>`;

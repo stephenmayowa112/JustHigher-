@@ -1,6 +1,6 @@
 import { Resend } from 'resend';
 import { createHmac } from 'crypto';
-import { supabase } from './supabase';
+import { supabase, supabaseAdmin } from './supabase';
 import { Post, Subscriber } from './types';
 import { generateNewsletterEmail } from './email-template';
 
@@ -38,7 +38,7 @@ function buildUnsubscribeUrl(email: string): string {
  * Get all active subscribers from the database.
  */
 async function getActiveSubscribers(): Promise<Subscriber[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
         .from('subscribers')
         .select('*')
         .eq('active', true)
@@ -122,7 +122,7 @@ export async function sendNewsletter(post: Post): Promise<{
  * Unsubscribe an email from the newsletter.
  */
 export async function unsubscribeEmail(email: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
         .from('subscribers')
         .update({ active: false })
         .eq('email', email.toLowerCase().trim());

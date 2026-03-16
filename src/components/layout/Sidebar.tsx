@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { SidebarProps } from '@/lib/types';
@@ -55,12 +54,6 @@ const ArchivesSection = dynamic(() => import('@/components/layout/ArchivesSectio
 
 export default function Sidebar({ className = '' }: SidebarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const pathname = usePathname();
-
-  // Hide sidebar on admin routes
-  if (pathname?.startsWith('/admin')) {
-    return null;
-  }
 
   const handleSearch = (query: string) => {
     // Handle search functionality

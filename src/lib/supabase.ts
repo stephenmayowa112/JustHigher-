@@ -1,17 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Post, Subscriber } from './types';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dummy.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy_anon_key';
-
-// Create Supabase client with proper configuration
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
-});
 
 // Database interface for type safety
 export interface Database {
@@ -31,19 +19,38 @@ export interface Database {
   };
 }
 
-// Re-export the same client as typedSupabase for backward compatibility
-// (Avoids creating a second client instance with duplicate auth overhead)
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ilzgxrpagzetyokvabzp.supabase.co';
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlsemd4cnBhZ3pldHlva3ZhYnpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0NTgxMTcsImV4cCI6MjA4NTAzNDExN30.HPlr9vwL-IV6TolXG9yuVEJoIDbFQAzCCunL2PAOb1g';
+
+// Public client - safe for browser use
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+});
+
 export const typedSupabase = supabase;
 
-// Admin client for bypassing RLS in server-side admin routes only
-export const supabaseAdmin = createClient(
-  supabaseUrl,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy_key',
-  {
+// Admin client - lazy init, only used server-side
+let _supabaseAdmin: SupabaseClient | null = null;
+
+export function getSupabaseAdmin(): SupabaseClient {
+  if (_supabaseAdmin) return _supabaseAdmin;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY;
+  _supabaseAdmin = createClient(SUPABASE_URL, key, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
       detectSessionInUrl: false,
     },
-  }
-);
+  });
+  return _supabaseAdmin;
+}
+
+export const supabaseAdmin = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    return (getSupabaseAdmin() as any)[prop];
+  },
+});

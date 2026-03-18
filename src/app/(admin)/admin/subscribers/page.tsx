@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { getAllSubscribers } from '@/lib/blog';
 import { Subscriber } from '@/lib/types';
 import { useAuth } from '@/components/auth/AuthProvider';
 
@@ -34,8 +33,13 @@ export default function AdminSubscribers() {
 
   const loadSubscribers = async () => {
     try {
-      const allSubscribers = await getAllSubscribers(1000);
-      setSubscribers(allSubscribers);
+      const res = await fetch('/api/subscribers');
+      const data = await res.json();
+      if (data.success) {
+        setSubscribers(data.subscribers || []);
+      } else {
+        console.error('Error loading subscribers:', data.error);
+      }
     } catch (error) {
       console.error('Error loading subscribers:', error);
     } finally {

@@ -196,7 +196,7 @@ export async function getSubscriberCount(): Promise<number> {
 
   return withCache(cacheKey, async () => {
     return withRetry(async () => {
-      const { count, error } = await supabase
+      const { count, error } = await supabaseAdmin
         .from('subscribers')
         .select('*', { count: 'exact', head: true })
         .eq('active', true);
@@ -219,7 +219,7 @@ export async function getRecentSubscribers(limit: number = 10): Promise<Subscrib
 
   return withCache(cacheKey, async () => {
     return withRetry(async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('subscribers')
         .select('*')
         .eq('active', true)
@@ -241,7 +241,7 @@ export async function getRecentSubscribers(limit: number = 10): Promise<Subscrib
  */
 export async function getAllSubscribers(limit: number = 1000): Promise<Subscriber[]> {
   return withRetry(async () => {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('subscribers')
       .select('*')
       .order('subscribed_at', { ascending: false })

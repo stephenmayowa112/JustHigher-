@@ -1,3 +1,5 @@
+'use client';
+
 import { PostCardProps } from '@/lib/types';
 import { formatDate, calculateReadingTime } from '@/lib/utils';
 import ShareButtons from './ShareButtons';

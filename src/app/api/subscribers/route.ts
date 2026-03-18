@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { addSubscriber, toggleSubscriberStatus, deleteSubscriber } from '@/lib/blog';
+import { addSubscriber, toggleSubscriberStatus, deleteSubscriber, getAllSubscribers } from '@/lib/blog';
+
+/**
+ * GET /api/subscribers - List all subscribers (admin)
+ */
+export async function GET() {
+    try {
+        const subscribers = await getAllSubscribers();
+        return NextResponse.json({ success: true, subscribers });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to fetch subscribers';
+        return NextResponse.json({ success: false, error: message }, { status: 500 });
+    }
+}
 
 /**
  * POST /api/subscribers - Add a subscriber manually (admin)

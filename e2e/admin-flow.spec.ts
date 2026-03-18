@@ -1,11 +1,13 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 test.describe('Admin Flow', () => {
+    const passwordInput = (page: Page) => page.getByRole('textbox', { name: /^password$/i });
+
     test('login page loads with form fields', async ({ page }) => {
         await page.goto('/admin/login');
         await expect(page.getByRole('heading', { name: /admin/i })).toBeVisible();
         await expect(page.getByLabel(/email/i)).toBeVisible();
-        await expect(page.getByLabel(/password/i)).toBeVisible();
+        await expect(passwordInput(page)).toBeVisible();
         await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible();
     });
 
@@ -27,7 +29,7 @@ test.describe('Admin Flow', () => {
         await page.goto('/admin/login');
 
         await page.getByLabel(/email/i).fill('wrong@example.com');
-        await page.getByLabel(/password/i).fill('wrongpassword123');
+        await passwordInput(page).fill('wrongpassword123');
         await page.getByRole('button', { name: /sign in/i }).click();
 
         // Should show an error message
@@ -53,7 +55,7 @@ test.describe('Admin Flow', () => {
     test('login button shows loading state when clicked', async ({ page }) => {
         await page.goto('/admin/login');
         await page.getByLabel(/email/i).fill('test@test.com');
-        await page.getByLabel(/password/i).fill('password123');
+        await passwordInput(page).fill('password123');
 
         const signInBtn = page.getByRole('button', { name: /sign in/i });
         await signInBtn.click();

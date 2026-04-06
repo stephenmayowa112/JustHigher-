@@ -2,6 +2,41 @@
 
 This directory contains utility scripts for database maintenance and fixes.
 
+## Fix Word Wrapping
+
+### Problem
+Blog posts may have embedded newlines in their HTML content that cause words to break mid-word (e.g., "w|ell" or "befo|re"). This happens when content is typed in a narrow editor (like Quill) that saves line breaks as part of the HTML.
+
+### Solution
+
+Run the word wrapping fix script to clean all existing posts:
+
+```bash
+npx tsx scripts/fix-word-wrapping.ts
+```
+
+This script will:
+- Remove embedded newlines within paragraphs
+- Remove `<br>` tags that cause unwanted breaks
+- Preserve Quill editor attributes (like `class="ql-align-justify"`)
+- Remove empty paragraphs
+- Only update posts that have changes
+
+### Prevention
+
+The system now automatically cleans content when saving posts:
+- New posts are cleaned before being saved to the database
+- Updated posts have their content cleaned automatically
+- Words will always wrap at spaces, never breaking mid-word
+
+### When to Use
+
+- After importing posts from another system
+- If you notice words breaking mid-word in published posts
+- After editing posts in a narrow editor
+
+**Note:** After running this script, clear your browser cache and refresh to see the changes.
+
 ## Fix Long Slugs
 
 ### Problem

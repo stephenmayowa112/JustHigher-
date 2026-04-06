@@ -3,6 +3,38 @@ import { Post, Subscriber } from './types';
 import { withCache, withRetry, cacheKeys, cacheTTL, invalidateCache } from './cache';
 
 /**
+ * Clean post content by removing embedded newlines that cause word wrapping issues
+ * This ensures words wrap at spaces only, never breaking mid-word
+ */
+function cleanPostContent(content: string): string {
+  // Replace non-breaking spaces with regular spaces
+  let cleaned = content.replace(/\u00A0/g, ' ');
+  
+  // Remove <br> and <br/> tags that might be causing breaks
+  cleaned = cleaned.replace(/<br\s*\/?>/gi, ' ');
+  
+  // Remove unwanted line breaks within HTML paragraphs
+  // This preserves attributes like class="ql-align-justify"
+  cleaned = cleaned.replace(/<p([^>]*)>([^<]*?)<\/p>/g, (match, attrs, innerText) => {
+    // Remove newlines and collapse multiple spaces within paragraph text
+    const cleanedText = innerText
+      .replace(/\s*\n\s*/g, ' ')  // Remove newlines
+      .replace(/\s+/g, ' ')        // Collapse multiple spaces
+      .trim();
+    
+    return cleanedText ? `<p${attrs}>${cleanedText}</p>` : '';
+  });
+  
+  // Remove any remaining empty paragraphs
+  cleaned = cleaned.replace(/<p[^>]*>\s*<\/p>/g, '');
+  
+  // Remove standalone newlines between tags
+  cleaned = cleaned.replace(/>\s*\n\s*</g, '><');
+  
+  return cleaned;
+}
+
+/**
  * Get published blog posts with optional pagination
  */
 export async function getPublishedPosts(limit?: number, offset?: number): Promise<Post[]> {
@@ -327,9 +359,15 @@ export async function deleteSubscriber(id: string): Promise<void> {
  */
 export async function createPost(post: Omit<Post, 'id' | 'created_at' | 'updated_at'>): Promise<Post> {
   return withRetry(async () => {
+    // Clean content before saving to prevent word wrapping issues
+    const cleanedPost = {
+      ...post,
+      content: cleanPostContent(post.content),
+    };
+
     const { data, error } = await supabase
       .from('posts')
-      .insert(post)
+      .insert(cleanedPost)
       .select()
       .single();
 
@@ -350,9 +388,16 @@ export async function createPost(post: Omit<Post, 'id' | 'created_at' | 'updated
  */
 export async function updatePost(id: string, updates: Partial<Post>): Promise<Post> {
   return withRetry(async () => {
+    // Clean content before saving if content is being updated
+    const cleanedUpdates = {
+      ...updates,
+      ...(updates.content ? { content: cleanPostContent(updates.content) } : {}),
+      updated_at: new Date().toISOString(),
+    };
+
     const { data, error } = await supabase
       .from('posts')
-      .update({ ...updates, updated_at: new Date().toISOString() })
+      .update(cleanedUpdates)
       .eq('id', id)
       .select()
       .single();

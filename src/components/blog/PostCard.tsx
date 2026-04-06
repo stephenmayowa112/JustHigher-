@@ -85,17 +85,19 @@ export default function PostCard({ post, showDivider = true }: PostCardProps) {
  * Converts markdown-like formatting to HTML and ensures proper paragraph structure
  */
 function formatPostContent(content: string): string {
-  // Sanitize content: replace non-breaking spaces (U+00A0) with standard spaces
-  // This prevents words from being glued together which causes mid-word wrapping
   // Sanitize content: replace non-breaking spaces with standard spaces
   let sanitizedContent = content.replace(/\u00A0/g, ' ');
   
   // Remove unwanted line breaks within HTML paragraphs that cause mid-word wrapping
-  sanitizedContent = sanitizedContent.replace(/<p>([^<]*?)<\/p>/g, (match, innerText) => {
+  // This regex preserves attributes like class="ql-align-justify"
+  sanitizedContent = sanitizedContent.replace(/<p([^>]*)>([^<]*?)<\/p>/g, (match, attrs, innerText) => {
     // Remove newlines and collapse multiple spaces within paragraph text
     const cleaned = innerText.replace(/\s*\n\s*/g, ' ').replace(/\s+/g, ' ').trim();
-    return `<p>${cleaned}</p>`;
+    return cleaned ? `<p${attrs}>${cleaned}</p>` : '';
   });
+  
+  // Remove any remaining empty paragraphs after cleaning
+  sanitizedContent = sanitizedContent.replace(/<p[^>]*>\s*<\/p>/g, '');
 
   // If content is already HTML (from Quill), return it with cleaned line breaks
   if (sanitizedContent.includes('<p>') || sanitizedContent.includes('<h')) {
@@ -103,15 +105,12 @@ function formatPostContent(content: string): string {
   }
 
   // Otherwise, process as markdown
-  // Split content into paragraphs
   const paragraphs = sanitizedContent
     .split('\n\n')
     .filter(p => p.trim().length > 0)
     .map(p => p.trim());
 
-  // Convert each paragraph to HTML
   const htmlParagraphs = paragraphs.map(paragraph => {
-
     // Handle headings
     if (paragraph.startsWith('# ')) {
       return `<h1>${paragraph.slice(2)}</h1>`;
@@ -135,7 +134,6 @@ function formatPostContent(content: string): string {
       '<a href="$2" class="text-blue-600 hover:text-blue-800 underline">$1</a>'
     );
 
-    // Return as paragraph
     return `<p>${formattedParagraph}</p>`;
   });
 

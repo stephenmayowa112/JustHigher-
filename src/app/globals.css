@@ -20,7 +20,7 @@
   --line-height-prose: 1.75;
 
   /* Content width constraint */
-  --max-width-prose: 740px;
+  --max-width-prose: 900px;
 
   /* Responsive spacing */
   --spacing-section: clamp(1.5rem, 4vw, 3rem);

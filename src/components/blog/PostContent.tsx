@@ -137,8 +137,22 @@ export default function PostContent({ post }: PostContentProps) {
 function formatPostContent(content: string): string {
   // Sanitize content: replace non-breaking spaces (U+00A0) with standard spaces
   // This prevents words from being glued together which causes mid-word wrapping
-  const sanitizedContent = content.replace(/\u00A0/g, ' ');
+  // Sanitize content: replace non-breaking spaces with standard spaces
+  let sanitizedContent = content.replace(/\u00A0/g, ' ');
+  
+  // Remove unwanted line breaks within HTML paragraphs that cause mid-word wrapping
+  sanitizedContent = sanitizedContent.replace(/<p>([^<]*?)<\/p>/g, (match, innerText) => {
+    // Remove newlines and collapse multiple spaces within paragraph text
+    const cleaned = innerText.replace(/\s*\n\s*/g, ' ').replace(/\s+/g, ' ').trim();
+    return `<p class="text-gray-700 leading-relaxed">${cleaned}</p>`;
+  });
 
+  // If content is already HTML (from Quill), return it with cleaned line breaks
+  if (sanitizedContent.includes('<p>') || sanitizedContent.includes('<h')) {
+    return sanitizedContent;
+  }
+
+  // Otherwise, process as markdown
   // Split content into paragraphs
   const paragraphs = sanitizedContent
     .split('\n\n')
@@ -147,11 +161,6 @@ function formatPostContent(content: string): string {
 
   // Convert each paragraph to HTML
   const htmlParagraphs = paragraphs.map(paragraph => {
-    // If the paragraph is already HTML (e.g. from Quill editor), return it as-is
-    // to avoid invalid nesting like <p><p>...</p></p>
-    if (paragraph.startsWith('<')) {
-      return paragraph;
-    }
 
     // Handle headings
     if (paragraph.startsWith('# ')) {

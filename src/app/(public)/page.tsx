@@ -2,6 +2,9 @@ import PostCard from '@/components/blog/PostCard';
 import { getPublishedPosts } from '@/lib/blog';
 import { Post } from '@/lib/types';
 
+// Revalidate this page every 60 seconds
+export const revalidate = 60;
+
 // This page uses Server-Side Generation to fetch posts at build time
 export default async function Home() {
   let posts: Post[] = [];

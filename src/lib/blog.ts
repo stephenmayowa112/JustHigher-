@@ -7,8 +7,9 @@ import { withCache, withRetry, cacheKeys, cacheTTL, invalidateCache } from './ca
  * This ensures words wrap at spaces only, never breaking mid-word
  */
 function cleanPostContent(content: string): string {
-  // Replace non-breaking spaces with regular spaces
+  // Replace non-breaking spaces (both Unicode and HTML entities) with regular spaces
   let cleaned = content.replace(/\u00A0/g, ' ');
+  cleaned = cleaned.replace(/&nbsp;/g, ' ');
   
   // Remove <br> and <br/> tags that might be causing breaks
   cleaned = cleaned.replace(/<br\s*\/?>/gi, ' ');

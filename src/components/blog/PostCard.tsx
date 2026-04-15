@@ -85,8 +85,9 @@ export default function PostCard({ post, showDivider = true }: PostCardProps) {
  * Converts markdown-like formatting to HTML and ensures proper paragraph structure
  */
 function formatPostContent(content: string): string {
-  // Sanitize content: replace non-breaking spaces with standard spaces
+  // Sanitize content: replace non-breaking spaces (both Unicode and HTML entities) with standard spaces
   let sanitizedContent = content.replace(/\u00A0/g, ' ');
+  sanitizedContent = sanitizedContent.replace(/&nbsp;/g, ' ');
   
   // Remove unwanted line breaks within HTML paragraphs that cause mid-word wrapping
   // This regex preserves attributes like class="ql-align-justify"

@@ -25,8 +25,9 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
  * Clean post content by removing embedded newlines that cause word wrapping issues
  */
 function cleanPostContent(content: string): string {
-  // Replace non-breaking spaces with regular spaces
+  // Replace non-breaking spaces (both Unicode and HTML entities) with regular spaces
   let cleaned = content.replace(/\u00A0/g, ' ');
+  cleaned = cleaned.replace(/&nbsp;/g, ' ');
   
   // Remove <br> and <br/> tags that might be causing breaks
   cleaned = cleaned.replace(/<br\s*\/?>/gi, ' ');
